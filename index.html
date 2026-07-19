@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VoLABS - PIPD Content Plan</title>
     <meta name="description"
-        content="Sistem Rencana Konten Volunteer PIPD Berbasis Google Ecosystem & Responsive Mobile-First">
+        content="Sistem Rencana Konten Volunteer PIPD">
     <meta name="theme-color" content="#BC305F">
 
     <!-- Cache Control Anti-Refresh Requirements -->
@@ -3422,7 +3422,12 @@ self.addEventListener('fetch', (e) => {
                 const item = contentPlans.find(c => c.ID === id);
                 if (item) {
                     document.getElementById('field-id').value = item.ID || "";
-                    document.getElementById('field-tanggal').value = item.Tanggal || "";
+                    
+                    let rawTgl = item.Tanggal || "";
+                    if (typeof rawTgl === 'string' && rawTgl.includes("T")) rawTgl = rawTgl.split("T")[0];
+                    if (rawTgl === "-") rawTgl = "";
+                    document.getElementById('field-tanggal').value = rawTgl;
+
                     document.getElementById('field-platform').value = item.Platform || "Instagram";
                     document.getElementById('field-pillar').value = item["Content Pillar"] || "Educational (Edukasi)";
                     document.getElementById('field-value').value = item.Value || "Informasi";
