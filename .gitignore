@@ -1,0 +1,23 @@
+# Keamanan Data Sensitif & Kredensial VoLabs PIPD
+# Berkas ini mengandung password dan data rahasia akun admin/volunteer
+Master Data Akun.html
+"Master Data Akun.html"
+
+# Berkas Temporer Sistem & macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Berkas Log & Temporary
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# AI Workspace & Environment
+.gemini/
+.agents/
