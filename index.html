@@ -14,11 +14,14 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
 
-    <!-- Progressive Web App (PWA) Manifest & Icon (Inline Data URI untuk WordPress) -->
-    <link rel="manifest"
-        href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22VoLabs%20PIPD%22%2C%22short_name%22%3A%22VoLabs%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%23ffffff%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Flh3.googleusercontent.com%2Fu%2F0%2Fd%2F1nbzz0bPRyIQQIhRckhurtt3VyfteQca4%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
-    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/u/0/d/1nbzz0bPRyIQQIhRckhurtt3VyfteQca4">
-    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/u/0/d/1nbzz0bPRyIQQIhRckhurtt3VyfteQca4">
+    <!-- PWA & WebAPK Standalone Configuration (Pure Icon without Browser Shortcut Badge) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VoLabs">
+    <link id="pwa-manifest" rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
 
     <!-- Libraries for Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -2050,7 +2053,7 @@
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-primary); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column;">
         <div
             style="background: var(--bg-secondary); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center;">
-            <img src="https://lh3.googleusercontent.com/u/0/d/1nbzz0bPRyIQQIhRckhurtt3VyfteQca4" alt="VoLabs Logo"
+            <img src="logo.png" alt="VoLabs Logo"
                 style="height: 60px; object-fit: contain; margin-bottom: 20px;">
             <h2 style="margin-bottom: 10px; color: var(--text-primary);">VoLabs V.3</h2>
             <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">Sistem Manajemen & Pelaporan
@@ -2183,7 +2186,7 @@
         <div class="brand-area">
             <div class="brand-logo" title="Logo VoLABS PIPD">
                 <!-- Logo VoLABS -->
-                <img src="https://lh3.googleusercontent.com/u/0/d/1nbzz0bPRyIQQIhRckhurtt3VyfteQca4" alt="VoLABS PIPD"
+                <img src="logo.png" alt="VoLABS PIPD"
                     style="width:100%; height:100%; object-fit:contain;">
             </div>
             <div class="brand-text">
@@ -3222,21 +3225,19 @@
         // =========================================================================================
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOBT8yWCjmp8OFGhBmcSAE2F8jj6WefTt9cBi32_L-JAfp1BLZGjDc4bHmdEFxOdrc/exec";
 
-        // Registrasi Progressive Web App (PWA) & Prompt Install via Inline Blob (Mendukung WordPress Embed)
+        // Registrasi Progressive Web App (PWA) dengan Dukungan Standalone WebAPK (Tanpa Logo Browser Shortcut)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swCode = `
-self.addEventListener('install', (e) => self.skipWaiting());
-self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-self.addEventListener('fetch', (e) => {
-    if (e.request.url.includes('script.google.com') || e.request.url.includes('exec') || e.request.url.includes('action=')) {
-        return;
-    }
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-});`;
-                const blob = new Blob([swCode], { type: 'application/javascript' });
-                const swUrl = URL.createObjectURL(blob);
-                navigator.serviceWorker.register(swUrl).catch(err => console.error("Service Worker error:", err));
+                // Utamakan registrasi berkas fisik sw.js agar Google WebAPK Generator bisa memvalidasi instalasi native murni
+                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                    .then(reg => console.log('PWA Service Worker fisik terdaftar:', reg.scope))
+                    .catch(() => {
+                        // Fallback ke Inline Blob jika sw.js fisik tidak ditemukan (misal di-embed WordPress/single-file)
+                        const swCode = `self.addEventListener('install', (e) => self.skipWaiting());self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));self.addEventListener('fetch', (e) => {if (e.request.url.includes('script.google.com') || e.request.url.includes('exec') || e.request.url.includes('action=')) return; e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));});`;
+                        const blob = new Blob([swCode], { type: 'application/javascript' });
+                        const swUrl = URL.createObjectURL(blob);
+                        navigator.serviceWorker.register(swUrl, { scope: './' }).catch(err => console.error("Service Worker fallback error:", err));
+                    });
             });
         }
 
