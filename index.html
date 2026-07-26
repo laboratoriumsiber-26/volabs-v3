@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VoLABS - PIPD Content Plan</title>
     <meta name="description"
-        content="Sistem Rencana Konten Volunteer PIPD">
+        content="Sistem Rencana Konten Volunteer PIPD Berbasis Google Ecosystem & Responsive Mobile-First">
     <meta name="theme-color" content="#BC305F">
 
     <!-- Cache Control Anti-Refresh Requirements -->
@@ -19,6 +19,9 @@
         href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22VoLabs%20PIPD%22%2C%22short_name%22%3A%22VoLabs%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%23ffffff%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Flh3.googleusercontent.com%2Fu%2F0%2Fd%2F1nbzz0bPRyIQQIhRckhurtt3VyfteQca4%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/u/0/d/1nbzz0bPRyIQQIhRckhurtt3VyfteQca4">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/u/0/d/1nbzz0bPRyIQQIhRckhurtt3VyfteQca4">
+
+    <!-- Libraries for Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
@@ -88,126 +91,176 @@
             --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
         }
 
-        /* Print Styles */
+        /* Print Styles for PDF/DOC Export */
         #print-area {
             display: none;
         }
 
+        #print-area.export-active {
+            display: block !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: -9999 !important;
+            width: 210mm;
+            /* A4 Width */
+            color: #000;
+            background: #fff;
+            padding: 1.5cm;
+            /* 1.5cm margins on all sides */
+            box-sizing: border-box;
+            line-height: 1.15;
+            /* Spasi 1.15 */
+            font-size: 11pt;
+            /* Font 11pt */
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
         @media print {
-            body> :not(#print-area) {
+            body.is-printing>*:not(.print-ancestor):not(#print-area) {
+                display: none !important;
+            }
+
+            .print-ancestor>*:not(.print-ancestor):not(#print-area) {
+                display: none !important;
+            }
+
+            .print-ancestor {
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                width: 100% !important;
+                max-width: none !important;
+                background: #fff !important;
+            }
+
+            .modal-overlay,
+            #toast-container,
+            #loading-overlay {
                 display: none !important;
             }
 
             #print-area {
                 display: block !important;
-            }
-
-            #print-area {
                 position: static !important;
                 width: 100%;
                 color: #000 !important;
                 background: #fff !important;
-                padding: 0;
+                padding: 0 !important;
                 margin: 0;
+                line-height: 1.15;
+                font-size: 11pt;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
 
             @page {
                 size: A4;
-                margin: 1.5cm;
+                margin: 0;
             }
 
             .print-kop {
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: flex-start;
                 margin-bottom: 5px;
+                white-space: nowrap;
             }
 
             .print-logo {
-                width: 80px;
+                width: 100px;
                 height: auto;
                 margin-right: 15px;
+                flex-shrink: 0;
             }
 
             .print-kop-text {
                 text-align: center;
-                font-family: "Times New Roman", Times, serif;
+                font-family: Arial, sans-serif;
                 color: #000;
+                flex-grow: 1;
+                padding-right: 115px;
+                /* Offset to center text relative to page */
             }
 
             .kop-1 {
-                font-size: 14px;
+                font-size: 14pt;
                 font-weight: normal;
             }
 
             .kop-2 {
-                font-size: 16px;
+                font-size: 16pt;
                 font-weight: bold;
             }
 
             .kop-3 {
-                font-size: 14px;
+                font-size: 14pt;
                 font-weight: bold;
             }
 
             .kop-4 {
-                font-size: 10px;
-                line-height: 1.2;
-                margin-top: 3px;
+                font-size: 11pt;
+                line-height: 1.15;
+                margin-top: 5px;
             }
 
             .print-divider {
-                border-bottom: 3px solid #000 !important;
-                border-top: 1px solid #000 !important;
-                height: 2px;
-                margin-bottom: 20px;
+                border-top: 5px solid #000 !important;
+                border-bottom: 2px solid #000 !important;
+                height: 3px;
+                margin-top: 10px;
+                margin-bottom: 15px;
             }
 
             .print-title {
                 text-align: center;
                 font-weight: bold;
-                font-size: 14px;
-                line-height: 1.4;
-                margin-bottom: 20px;
+                font-size: 11pt;
+                line-height: 1.15;
+                margin-bottom: 15px;
                 color: #000;
             }
 
             .print-subtitle {
                 font-weight: bold;
-                font-size: 12px;
-                margin-bottom: 10px;
+                font-size: 11pt;
+                margin-bottom: 5px;
                 text-transform: uppercase;
                 color: #000;
             }
 
             .print-info-table {
                 width: 100%;
-                font-size: 12px;
-                margin-bottom: 20px;
+                font-size: 11pt;
+                margin-bottom: 10px;
                 border-collapse: collapse;
                 color: #000;
             }
 
             .print-info-table td {
-                padding: 4px 0;
+                padding: 2px 0;
                 vertical-align: top;
             }
 
             .print-data-table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-bottom: 30px;
-                font-size: 11px;
+                margin-bottom: 15px;
+                font-size: 11pt;
                 color: #000;
             }
 
             .print-data-table th,
             .print-data-table td {
                 border: 1px solid #000 !important;
-                padding: 6px;
+                padding: 4px;
                 text-align: center;
+                page-break-inside: avoid;
+            }
+
+            .print-data-table tr {
+                page-break-inside: avoid;
             }
 
             .print-data-table th {
@@ -222,17 +275,19 @@
             .print-signatures {
                 display: flex;
                 justify-content: space-between;
-                font-size: 12px;
+                font-size: 11pt;
                 text-align: center;
-                margin-bottom: 30px;
+                margin-bottom: 15px;
                 color: #000;
+                page-break-inside: avoid;
             }
 
             .print-signature-center {
                 text-align: center;
-                font-size: 12px;
-                margin-top: 30px;
+                font-size: 11pt;
+                margin-top: 15px;
                 color: #000;
+                page-break-inside: avoid;
             }
         }
 
@@ -281,9 +336,12 @@
 
         /* Top Navigation Bar */
         .top-header {
-            position: sticky;
-            top: 0;
-            z-index: 40;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 60 !important;
             background: var(--bg-glass);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -382,6 +440,14 @@
         }
 
         @media (max-width: 767px) {
+            .header {
+                padding: 0.75rem 1rem;
+            }
+
+            .main-content {
+                padding: 5rem 1rem 2rem;
+            }
+
             .brand-area {
                 display: none;
                 /* Hide brand area on mobile to maximize search bar */
@@ -389,6 +455,46 @@
 
             .header-search-wrapper {
                 margin: 0 0.5rem 0 0;
+            }
+
+            #user-profile-text {
+                display: none !important;
+            }
+
+            #user-profile-info {
+                margin-right: 5px !important;
+                padding-right: 5px !important;
+                gap: 5px !important;
+            }
+
+            /* Bottom Sheet Styles */
+            .modal-overlay {
+                align-items: flex-end !important;
+                padding: 0 !important;
+            }
+
+            .modal-box {
+                max-width: 100% !important;
+                max-height: 90vh !important;
+                border-radius: 20px 20px 0 0 !important;
+                border: none !important;
+                border-bottom: none !important;
+                animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            }
+
+            #login-screen {
+                justify-content: flex-end !important;
+                padding: 0 !important;
+            }
+
+            #login-screen>div {
+                border-radius: 24px 24px 0 0 !important;
+                animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+                padding-bottom: 50px !important;
+                /* extra padding at bottom */
+                max-width: 100% !important;
+                margin: 0 !important;
+                border: none !important;
             }
         }
 
@@ -480,36 +586,49 @@
             }
         }
 
-        /* Mobile Text Hiding for Clean Proportional UI */
+        /* Mobile Text Display for Clean Proportional UI */
         @media (max-width: 850px) {
+            .bottom-nav .nav-item {
+                flex-direction: column;
+                gap: 4px;
+                padding: 0.4rem 0;
+            }
+
             .bottom-nav .nav-item span {
-                display: none !important;
+                display: block !important;
+                font-size: 11px;
+                font-weight: 600;
+                line-height: 1.2;
+                text-align: center;
             }
 
             .bottom-nav .nav-item svg {
-                width: 26px !important;
-                height: 26px !important;
+                width: 22px !important;
+                height: 22px !important;
                 margin-bottom: 0 !important;
             }
 
             #btn-change-sheet span,
             #btn-add-content span,
             #btn-print-report span,
-            #btn-print-pelaporan span {
+            #btn-print-pelaporan span,
+            #btn-approval .btn-text {
                 display: none;
             }
 
             #btn-change-sheet,
             #btn-add-content,
             #btn-print-report,
-            #btn-print-pelaporan {
+            #btn-print-pelaporan,
+            #btn-approval {
                 padding: 0.6rem !important;
             }
 
             #btn-change-sheet svg,
             #btn-add-content svg,
             #btn-print-report svg,
-            #btn-print-pelaporan svg {
+            #btn-print-pelaporan svg,
+            #btn-approval svg {
                 margin-right: 0 !important;
                 display: block !important;
             }
@@ -523,7 +642,7 @@
         /* Main Container */
         .main-content {
             max-width: 1240px;
-            margin: 0 auto;
+            margin: 68px auto 0 auto;
             padding: 1.5rem 1.25rem;
         }
 
@@ -988,6 +1107,41 @@
             padding: 0.35rem 0.75rem;
             border-radius: var(--radius-full);
             border: 1px solid var(--border-color);
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .pic-checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 160px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            background: var(--bg-primary);
+        }
+
+        .pic-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .pic-checkbox-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .pic-checkbox-item input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
         }
 
         .card-actions {
@@ -1333,6 +1487,71 @@
             color: var(--primary);
         }
 
+        @media (min-width: 851px) {
+
+            /* Desktop Sidebar Layout */
+            .bottom-nav {
+                top: 68px !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: auto !important;
+                width: 230px !important;
+                border-top: none !important;
+                border-right: 1px solid var(--border-color) !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                align-items: stretch !important;
+                padding: 1.5rem 0.85rem !important;
+                gap: 0.5rem !important;
+                background: var(--bg-primary) !important;
+                box-shadow: 4px 0 16px rgba(0, 0, 0, 0.02) !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+            }
+
+            .nav-item {
+                flex-direction: row !important;
+                justify-content: flex-start !important;
+                align-items: center !important;
+                gap: 12px !important;
+                padding: 0.85rem 1rem !important;
+                font-size: 0.95rem !important;
+                border-radius: 10px !important;
+                flex: 0 0 auto !important;
+                width: 100% !important;
+            }
+
+            .nav-item svg {
+                width: 22px !important;
+                height: 22px !important;
+                margin: 0 !important;
+            }
+
+            .main-content {
+                margin-left: 230px !important;
+                margin-top: 68px !important;
+                max-width: calc(100% - 230px) !important;
+                padding: 1.5rem 2rem 2rem 2rem !important;
+            }
+
+            #user-profile-info {
+                display: none !important;
+            }
+
+            .sidebar-user-profile {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                margin-top: auto !important;
+                padding: 0.75rem 0.75rem !important;
+                background: var(--bg-tertiary) !important;
+                border-radius: 12px !important;
+                border: 1px solid var(--border-color) !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+
         /* Modals - Anti-Stuck Fleksibel di Semua Layar Mobile/Desktop */
         .modal-overlay {
             position: fixed;
@@ -1371,6 +1590,22 @@
             transform: translateY(16px) scale(0.97);
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0) scale(1);
+        }
+
+        /* Bottom Sheet Anim for Mobile */
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 600px) {
@@ -1510,10 +1745,172 @@
             font-weight: 600;
             font-size: 0.875rem;
             transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .btn-secondary:hover {
             background: var(--border-color);
+        }
+
+        /* Utility Classes */
+        /* Custom Tooltip */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--bg-tertiary);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+            opacity: 0;
+            animation: fadeInTooltip 0.2s ease forwards;
+            animation-delay: 0.1s;
+        }
+
+        [data-tooltip]:hover::before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent transparent var(--border-color) transparent;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0;
+            animation: fadeInTooltip 0.2s ease forwards;
+            animation-delay: 0.1s;
+        }
+
+        @keyframes fadeInTooltip {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Banner Alert */
+        .banner-alert {
+            position: fixed;
+            top: -100px;
+            bottom: auto;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            /* Senada dengan tombol */
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            z-index: 100000;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .banner-alert.show {
+            top: 30px;
+            bottom: auto;
+        }
+
+        /* Animated Login Background */
+        @keyframes subtleGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        #login-screen {
+            background: linear-gradient(-45deg, #f8fafc, #e2e8f0, #f1f5f9, #ffffff);
+            background-size: 400% 400%;
+            animation: subtleGradient 15s ease infinite;
+        }
+
+        [data-theme="dark"] #login-screen {
+            background: linear-gradient(-45deg, #0b0f17, #1e293b, #0f172a, #020617);
+            background-size: 400% 400%;
+            animation: subtleGradient 15s ease infinite;
+        }
+
+        .popover-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .popover-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-glass);
+            min-width: 180px;
+            z-index: 1000;
+            padding: 8px 0;
+            animation: slideDown 0.2s ease;
+        }
+
+        .popover-menu.show {
+            display: block;
+        }
+
+        .popover-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-primary);
+            transition: background 0.2s;
+        }
+
+        .popover-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .popover-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 5px 0;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Empty State */
@@ -1571,41 +1968,130 @@
             animation: skeleton-loading 1.2s infinite ease-in-out;
             border-radius: var(--radius-sm);
         }
+
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        .slider svg {
+            width: 14px;
+            height: 14px;
+            color: #fff;
+            z-index: 1;
+        }
+
+        .moon-icon-toggle {
+            color: #f1c40f;
+        }
+
+        .sun-icon-toggle {
+            color: #f39c12;
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- ========================================== -->
+    <!-- LOGIN SCREEN (RBAC)                        -->
+    <!-- ========================================== -->
+    <div id="login-screen"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-primary); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+        <div
+            style="background: var(--bg-secondary); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center;">
+            <img src="https://lh3.googleusercontent.com/u/0/d/1nbzz0bPRyIQQIhRckhurtt3VyfteQca4" alt="VoLabs Logo"
+                style="height: 60px; object-fit: contain; margin-bottom: 20px;">
+            <h2 style="margin-bottom: 10px; color: var(--text-primary);">VoLabs V.3</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">Sistem Manajemen & Pelaporan
+                KKN</p>
+
+            <div id="login-form" onkeydown="if(event.key === 'Enter') handleLogin(event)">
+                <div class="form-group" style="text-align: left;">
+                    <label>Username / NIM</label>
+                    <input type="text" id="login-username" class="form-control" autocomplete="off" autocorrect="off"
+                        autocapitalize="off" spellcheck="false" placeholder="Masukkan username">
+                </div>
+                <div class="form-group" style="text-align: left; margin-bottom: 24px;">
+                    <label>Password</label>
+                    <input type="text" id="login-password" class="form-control"
+                        style="-webkit-text-security: disc; text-security: disc;" autocomplete="off" autocorrect="off"
+                        autocapitalize="off" spellcheck="false" placeholder="Masukkan password">
+                </div>
+                <button type="button" id="btn-login" class="btn btn-primary" onclick="handleLogin(event)"
+                    style="width: 100%; justify-content: center;">Masuk ke Dashboard</button>
+            </div>
+        </div>
+        <p style="margin-top: 20px; color: var(--text-tertiary); font-size: 12px;">© 2026 VoLabs V.3. Powered by PIPD
+            UIN Siber Syekh Nurjati Cirebon</p>
+    </div>
 
     <!-- AREA PRINT LAPORAN (Sembunyi secara default) -->
     <div id="print-area">
         <table style="width: 100%; border: none;">
             <thead>
                 <tr>
-                    <td>
-                        <div class="print-kop">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/39/Logo-UINSSC-696x858.png"
-                                alt="Logo UINSSC" class="print-logo" onerror="this.style.display='none'">
-                            <div class="print-kop-text">
-                                <div class="kop-1">KEMENTERIAN AGAMA REPUBLIK INDONESIA</div>
-                                <div class="kop-2">UNIVERSITAS ISLAM NEGERI SIBER SYEKH NURJATI CIREBON</div>
-                                <div class="kop-3">LEMBAGA PENELITIAN DAN PENGABDIAN KEPADA MASYARAKAT</div>
-                                <div class="kop-4">
-                                    Alamat: Jl. Perjuangan ByPass Sunyaragi Cirebon 45132<br>
-                                    Telepon (0231) 481264 Faksimili (0231) 489926<br>
-                                    Website: www.lp2m.uinssc.ac.id Email: lp2m@uinssc.ac.id
-                                </div>
-                            </div>
-                        </div>
-                        <div class="print-divider"></div>
+                    <td style="padding: 0; border: none;">
+                        <img src="kop_surat.png" alt="Kop Surat"
+                            style="width: 100%; height: auto; margin-bottom: 0; display: block;">
                     </td>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>
+                    <td style="padding: 0.5cm 1.5cm 1.5cm 1.5cm; border: none;">
                         <div class="print-title">
-                            <div>DAFTAR HADIR KEGIATAN</div>
-                            <div>PROGRAM VOLUNTEER PIPD TAHUN 2026</div>
+                            <div>LAPORAN KKN REKOGNISI</div>
                         </div>
 
                         <div class="print-subtitle">DATA PESERTA</div>
@@ -1633,70 +2119,62 @@
                             </tr>
                             <tr>
                                 <td>Unit Tugas</td>
-                                <td>: Pusat Inovasi Pembelajaran Digital (PIPD) UIN Siber Cirebon</td>
+                                <td>: Pusat Inovasi Pembelajaran Digital (PIPD) UIN Siber Syekh Nurjati Cirebon</td>
                             </tr>
-                            <tr>
-                                <td style="vertical-align:top;">Pembimbing Lapangan</td>
-                                <td>
-                                    : 1. Mohamad Arifin<br>
-                                    &nbsp;&nbsp;2. Amelia Ayu Lestari<br>
-                                    &nbsp;&nbsp;3. Bekti Sugiyono<br>
-                                    &nbsp;&nbsp;4. Agung Ahdiansyah
-                                </td>
-                            </tr>
-                        </table>
-
-                        <div class="print-subtitle" style="text-align:center; margin-top:20px; font-weight:bold;">
-                            LAPORAN KINERJA
-                            VOLUNTEER</div>
-
-                        <table class="print-data-table" id="print-data-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:30px;">No</th>
-                                    <th style="width:100px;">Tanggal</th>
-                                    <th style="width:150px;">Sasaran Kerja</th>
-                                    <th>Deskripsi Konten</th>
-                                    <th style="width:150px;">Evidence</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- JS will populate rows -->
-                            </tbody>
-                        </table>
-
-                        <div class="print-signatures">
-                            <div class="sig-left">
-                                <div style="margin-bottom:60px;">Pembimbing Lapangan<br>Pusat Inovasi Pembelajaran
-                                    Digital</div>
-                                <div>(<span id="out-pembimbing"
-                                        style="display:inline-block; min-width:150px; border-bottom:1px solid #000;"></span>)
-                                </div>
-                                <div>NIP.</div>
-                            </div>
-                            <div class="sig-right">
-                                <div style="margin-bottom:60px;">Cirebon, <span
-                                        id="out-ttd-tanggal"></span><br>Volunteer PIPD
-                                    Pengabdian</div>
-                                <div>(<span id="out-ttd-nama"
-                                        style="display:inline-block; min-width:150px; border-bottom:1px solid #000;"></span>)
-                                </div>
-                                <div>NIM. <span id="out-ttd-nim"></span></div>
-                            </div>
-                        </div>
-
-                        <div class="print-signature-center">
-                            <div style="margin-bottom:60px;">
-                                Mengetahui,<br>
-                                Kepala Pusat Pengabdian kepada<br>
-                                Masyarakat dan SDG's
-                            </div>
-                            <div style="font-weight:bold; text-decoration:underline;">Dr. Budi Manfaat, M.Si.</div>
-                            <div>NIP. 198111282008011008</div>
-                        </div>
-                    </td>
                 </tr>
+        </table>
+
+        <div class="print-subtitle" style="text-align:center; margin-top:20px; font-weight:bold;">
+            URAIAN KEGIATAN</div>
+
+        <table class="print-data-table" id="print-data-table">
+            <thead>
+                <tr>
+                    <th style="width:30px;">No</th>
+                    <th style="width:100px;">Tanggal</th>
+                    <th style="width:150px;">Sasaran Kerja</th>
+                    <th>Deskripsi Konten</th>
+                    <th style="width:150px;">Evidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- JS will populate rows -->
             </tbody>
+        </table>
+
+        <table
+            style="width: 100%; font-size: 11pt; color: #000; page-break-inside: avoid; text-align: center; margin-bottom: 15px; border: none; border-collapse: collapse;">
+            <tr>
+                <td style="width: 50%; vertical-align: top; border: none; padding: 0;">
+                    <div style="margin-bottom:60px;">Mengetahui,<br>Pembimbing Lapangan</div>
+                    <div>(<span
+                            style="display:inline-block; min-width:150px; border-bottom:1px solid #000; font-weight:bold;">Heru
+                            Mudiyanto, M.Pd.</span>)</div>
+                    <div>NIP. 199007282023211023</div>
+                </td>
+                <td style="width: 50%; vertical-align: top; border: none; padding: 0;">
+                    <div style="margin-bottom:60px;">Cirebon, <span id="out-ttd-tanggal"></span><br>Volunteer PIPD
+                        Pengabdian</div>
+                    <div>(<span id="out-ttd-nama"
+                            style="display:inline-block; min-width:150px; border-bottom:1px solid #000;"></span>)</div>
+                    <div>NIM. <span id="out-ttd-nim"></span></div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="print-signature-center"
+            style="text-align: center; font-size: 11pt; margin-top: 15px; color: #000; page-break-inside: avoid;">
+            <div style="margin-bottom:60px;">
+                Mengetahui,<br>
+                Kepala Pusat Pengabdian kepada<br>
+                Masyarakat dan SDG's
+            </div>
+            <div style="font-weight:bold; text-decoration:underline;">Dr. Budi Manfaat, M.Si.</div>
+            <div>NIP. 197412192000031002</div>
+        </div>
+        </td>
+        </tr>
+        </tbody>
         </table>
     </div>
 
@@ -1731,7 +2209,7 @@
 
         <div class="header-actions">
             <!-- Tombol Instal PWA (Muncul otomatis saat siap diinstal) -->
-            <button class="icon-btn install-badge" id="btn-install-pwa" title="Instal Aplikasi PWA ke Perangkat"
+            <button class="icon-btn install-badge" id="btn-install-pwa" data-tooltip="Download VoLabs"
                 style="display: none;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -1739,19 +2217,57 @@
                 </svg>
             </button>
 
-            <!-- Badge Ganti Sheet -->
-            <button class="sheet-badge" id="btn-change-sheet" title="Ganti Bulan / Sheet Aktif">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    style="width: 15px; height: 15px; margin-right: 4px; display: none;" class="mobile-only-icon">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                    </path>
-                </svg>
-                <span id="active-sheet-badge">Sheet: Juli</span>
-            </button>
+            <!-- Profile Info (RBAC) -->
+            <div id="user-profile-info"
+                style="display: flex; align-items: center; gap: 10px; margin-right: 15px; border-right: 1px solid var(--border-color); padding-right: 15px;">
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                    <span id="user-nama"
+                        style="font-size: 14px; font-weight: 600; color: var(--text-primary);">Guest</span>
+                    <span id="user-role" style="font-size: 11px; color: var(--primary);">Role</span>
+                </div>
+                <button class="icon-btn" onclick="logout()" data-tooltip="Keluar" style="color: #ef4444;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Badge Ganti Sheet dengan Popover -->
+            <div class="popover-container">
+                <button class="sheet-badge" id="btn-change-sheet" title="Ganti Bulan / Sheet Aktif"
+                    onclick="document.getElementById('sheet-popover').classList.toggle('show')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        style="width: 15px; height: 15px; margin-right: 4px; display: none;" class="mobile-only-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    <span id="active-sheet-badge">Sheet: Juli</span>
+                </button>
+                <div id="sheet-popover" class="popover-menu">
+                    <!-- Bulan will be generated by JS or static -->
+                    <div class="popover-item" onclick="changeSheetFromPopover('Januari')">Januari</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('Februari')">Februari</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('Maret')">Maret</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('April')">April</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('Mei')">Mei</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('Juni')">Juni</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('Juli')">Juli</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('Agustus')">Agustus</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('September')">September</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('Oktober')">Oktober</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('November')">November</div>
+                    <div class="popover-item" onclick="changeSheetFromPopover('Desember')">Desember</div>
+                    <div class="popover-divider"></div>
+                    <div class="popover-item" onclick="promptNewSheet()"
+                        style="color: var(--primary); font-weight: 600;">+ Buat Baru...</div>
+                </div>
+            </div>
 
             <!-- Tombol Refresh (Berputar saat muat ulang, tanpa bar loading) -->
-            <button class="icon-btn" id="btn-refresh" title="Muat Ulang Data dari Spreadsheet">
+            <button class="icon-btn" id="btn-refresh" data-tooltip="Refresh Data">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
@@ -1759,13 +2275,22 @@
                 </svg>
             </button>
 
-            <!-- Tombol Mode Gelap/Terang -->
-            <button class="icon-btn" id="btn-theme-toggle" title="Ubah Mode Gelap / Terang">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
-                </svg>
-            </button>
+            <!-- Tombol Mode Gelap/Terang (Toggle Switch) -->
+            <div class="theme-switch-wrapper" data-tooltip="Mode Layar">
+                <label class="theme-switch" for="btn-theme-toggle">
+                    <input type="checkbox" id="btn-theme-toggle">
+                    <span class="slider round">
+                        <svg class="moon-icon-toggle" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                        <svg class="sun-icon-toggle" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 2.32a1 1 0 011.415 0l.707.707a1 1 0 01-1.414 1.415l-.707-.707a1 1 0 010-1.415zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM14.95 16.364a1 1 0 01-1.414 0l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414zM10 18a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zm-4.22-2.32a1 1 0 01-1.415 0l-.707-.707a1 1 0 011.414-1.415l.707.707a1 1 0 010 1.415zM2 10a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zM3.636 5.05a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM10 5a5 5 0 100 10 5 5 0 000-10z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                    </span>
+                </label>
+            </div>
         </div>
     </header>
 
@@ -1933,6 +2458,17 @@
                             </path>
                         </svg>
                         <span>Cetak Laporan</span>
+                    </button>
+                    <button class="btn-secondary" id="btn-approval" style="color: #f59e0b; border-color: #f59e0b;"
+                        onclick="openApprovalModal()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px; height:18px;">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                            </path>
+                        </svg>
+                        <span class="btn-text">Approval Kolaborasi</span>
+                        <span id="badge-approval"
+                            style="display:none; background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; margin-left: 4px;">0</span>
                     </button>
                     <button class="btn-primary" id="btn-add-content">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2116,15 +2652,25 @@
                 .viewport-wrapper {
                     position: relative;
                     width: 100%;
-                    min-height: 300px;
-                    /* Fallback before video loads */
+                    min-height: 250px;
+                    max-height: 520px;
+                    aspect-ratio: 16 / 9;
+                    margin: 0 auto;
                     border-radius: 12px;
                     overflow: hidden;
-                    background: #000;
+                    background: #0f172a;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     border: 1px solid var(--border-color);
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                }
+
+                @media (max-width: 850px) {
+                    .viewport-wrapper {
+                        aspect-ratio: 9 / 16;
+                        max-height: 480px;
+                    }
                 }
 
                 .viewport-wrapper video,
@@ -2215,19 +2761,19 @@
                         </div>
                         <div class="form-group">
                             <label>Divisi</label>
-                            <input type="text" id="abs-jabatan" class="form-input" readonly required>
+                            <input type="text" id="abs-jabatan" class="form-input" required>
                         </div>
                         <div class="form-group">
                             <label>Semester</label>
-                            <input type="text" id="abs-semester" class="form-input" readonly required>
+                            <input type="text" id="abs-semester" class="form-input" required>
                         </div>
                         <div class="form-group">
                             <label>Fakultas</label>
-                            <input type="text" id="abs-fakultas" class="form-input" readonly required>
+                            <input type="text" id="abs-fakultas" class="form-input" required>
                         </div>
                         <div class="form-group">
                             <label>Jurusan</label>
-                            <input type="text" id="abs-jurusan" class="form-input" readonly required>
+                            <input type="text" id="abs-jurusan" class="form-input" required>
                         </div>
                         <div class="form-group">
                             <label>NIM</label>
@@ -2338,7 +2884,7 @@
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
                 </path>
             </svg>
-            <span>Rencana Konten</span>
+            <span>Konten</span>
         </div>
         <div class="nav-item" data-view="kanban">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2366,6 +2912,21 @@
             </svg>
             <span>Absensi</span>
         </div>
+        <div class="sidebar-user-profile" style="display: none;">
+            <div style="display: flex; flex-direction: column; overflow: hidden; margin-right: 8px;">
+                <span id="sidebar-user-nama"
+                    style="font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Guest</span>
+                <span id="sidebar-user-role"
+                    style="font-size: 11px; color: var(--primary); font-weight: 600;">Role</span>
+            </div>
+            <button class="icon-btn" onclick="logout()" data-tooltip="Keluar" style="color: #ef4444; flex-shrink: 0;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                    </path>
+                </svg>
+            </button>
+        </div>
     </nav>
 
     <!-- MODAL CETAK LAPORAN -->
@@ -2383,14 +2944,8 @@
                 <div class="modal-body" style="display:flex; flex-direction:column; gap:0.75rem;">
                     <div class="form-group">
                         <label for="print-pic">Pilih Nama PIC</label>
-                        <select id="print-pic" class="form-select">
+                        <select id="print-pic" class="form-select" onchange="autoFillPrintFields(this.value)">
                             <option value="Semua PIC">Semua PIC (Kompilasi Seluruh Volunteer)</option>
-                            <option value="Marissa Fadhliya Rahmadiah">Marissa Fadhliya Rahmadiah</option>
-                            <option value="Derillya Ananta">Derillya Ananta</option>
-                            <option value="Siti Uswatun Hasanah">Siti Uswatun Hasanah</option>
-                            <option value="Fitri Nurhasanah">Fitri Nurhasanah</option>
-                            <option value="Ai Nurohmah">Ai Nurohmah</option>
-                            <option value="Ingka Nurul Hotimah">Ingka Nurul Hotimah</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -2413,22 +2968,28 @@
                         <input type="text" id="print-periode" class="form-input"
                             placeholder="Contoh: 1 Agustus s.d. 31 Agustus 2026">
                     </div>
-                    <div class="form-group">
-                        <label for="print-pembimbing">Nama & Gelar Pembimbing Lapangan (opsional)</label>
-                        <input type="text" id="print-pembimbing" class="form-input"
-                            placeholder="Kosongkan agar bisa ditulis tangan nanti">
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" id="btn-cancel-print">Batal</button>
-                    <button type="submit" class="btn-primary" style="background:#10b981; border-color:#10b981;">
+                    <button type="button" class="btn-secondary" id="btn-download-doc"
+                        style="background:#2563eb; border-color:#2563eb; color: #fff;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            style="width:16px; height:16px; margin-right:4px; display:inline-block; vertical-align:text-bottom;">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Download DOC
+                    </button>
+                    <button type="button" class="btn-primary" id="btn-download-pdf"
+                        style="background:#10b981; border-color:#10b981;">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             style="width:16px; height:16px; margin-right:4px; display:inline-block; vertical-align:text-bottom;">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
                             </path>
                         </svg>
-                        Cetak PDF
+                        Cetak / Preview PDF
                     </button>
                 </div>
             </form>
@@ -2436,7 +2997,7 @@
     </div>
 
     <!-- MODAL CUSTOM DIALOG (ALERT/CONFIRM/PROMPT) -->
-    <div class="modal-overlay" id="modal-dialog" style="z-index: 400;">
+    <div class="modal-overlay" id="modal-dialog" style="z-index: 99999;">
         <div class="modal-box" style="max-width: 420px;">
             <div class="modal-header">
                 <h3 class="modal-title" id="dialog-title">Konfirmasi</h3>
@@ -2516,11 +3077,7 @@
 
                     <!-- Row 3: PIC & Status -->
                     <div class="form-grid-2">
-                        <div class="form-group">
-                            <label for="field-pic">PIC (Penanggung Jawab) *</label>
-                            <select id="field-pic" class="form-select" required>
-                            </select>
-                        </div>
+                        <!-- PIC form field removed for auto-assignment -->
                         <div class="form-group">
                             <label for="field-status">Status Alur Kerja *</label>
                             <select id="field-status" class="form-select" required>
@@ -2531,6 +3088,34 @@
                                 <option value="Siap Tayang (Ready)">Siap Tayang (Ready)</option>
                                 <option value="Published">Published</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <!-- Row Khusus Super Admin: Pilih Volunteer / Kolaborator Terlibat -->
+                    <div class="form-group" id="group-admin-collab"
+                        style="display: none; background: rgba(59, 130, 246, 0.05); padding: 14px; border-radius: 8px; border: 1px dashed rgba(59, 130, 246, 0.3); margin-bottom: 16px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label
+                                style="color: #3b82f6; font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; margin: 0;">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    style="width: 18px; height: 18px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                                    </path>
+                                </svg>
+                                [Khusus Super Admin] Pilih Volunteer Terlibat:
+                            </label>
+                            <span style="font-size: 10px; color: #3b82f6; font-weight: 500;">Checklist Relawan</span>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
+                            Centang nama-nama volunteer yang terlibat dalam konten ini. <b>Catatan:</b> Saat membuat
+                            konten baru, nama pertama yang dicentang otomatis menjadi <b>PIC Utama</b>, dan nama lainnya
+                            menjadi <b>Kolaborator</b>.
+                        </div>
+                        <div id="admin-collab-list"
+                            style="max-height: 160px; overflow-y: auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px;">
+                            <!-- Checklist nama volunteer diisi via JS -->
                         </div>
                     </div>
 
@@ -2610,13 +3195,32 @@
         </div>
     </div>
 
+    <!-- ==================== APPROVAL MODAL ==================== -->
+    <div id="modal-approval" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Approval Kolaborasi</h3>
+                <button class="btn-close" onclick="closeApprovalModal()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div id="approval-list-container">
+                    <!-- Daftar request diisi via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SINGLE PAGE APPLICATION JAVASCRIPT -->
     <script>
         // =========================================================================================
         // KONFIGURASI URL WEB APP GOOGLE APPS SCRIPT
         // Tempelkan Web App URL hasil deploy berkas Code.gs Anda ke dalam tanda kutip di bawah:
         // =========================================================================================
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyF8taX0bpe9D55XSNMa8nPYBYSyo4X5Cr2ZytGbw8Bv1HlVZxTbuIlbe5y0jJr2_Uu/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOBT8yWCjmp8OFGhBmcSAE2F8jj6WefTt9cBi32_L-JAfp1BLZGjDc4bHmdEFxOdrc/exec";
 
         // Registrasi Progressive Web App (PWA) & Prompt Install via Inline Blob (Mendukung WordPress Embed)
         if ('serviceWorker' in navigator) {
@@ -2625,6 +3229,9 @@
 self.addEventListener('install', (e) => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
 self.addEventListener('fetch', (e) => {
+    if (e.request.url.includes('script.google.com') || e.request.url.includes('exec') || e.request.url.includes('action=')) {
+        return;
+    }
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });`;
                 const blob = new Blob([swCode], { type: 'application/javascript' });
@@ -2682,6 +3289,12 @@ self.addEventListener('fetch', (e) => {
                     btnInstallPwa.style.display = 'none';
                 }
                 deferredPrompt = null;
+            } else {
+                showCustomDialog({
+                    title: "Instal Aplikasi",
+                    message: "VoLabs V.2",
+                    confirmText: "Mengerti"
+                });
             }
         });
 
@@ -2762,10 +3375,14 @@ self.addEventListener('fetch', (e) => {
                 const indonesianMonths = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
                 const defaultName = "Content Plan " + indonesianMonths[currentMonthIndex] + " " + new Date().getFullYear();
 
-                // Jika tidak ada di local storage, atau masih pakai format lama (seperti "Agustus" aja), ganti ke format lengkap
+                const currentMonthTracker = new Date().getFullYear() + "-" + currentMonthIndex;
+                const lastSeenMonth = localStorage.getItem("VOLABS_LAST_SEEN_MONTH");
+
+                // Jika tidak ada di local storage, atau masih pakai format lama, atau jika bulan telah berganti otomatis pindah ke bulan saat ini!
                 let savedName = localStorage.getItem(CONFIG.STORAGE_KEYS.SHEET_NAME);
-                if (!savedName || !savedName.includes("Content Plan")) {
+                if (!savedName || !savedName.includes("Content Plan") || lastSeenMonth !== currentMonthTracker) {
                     savedName = defaultName;
+                    localStorage.setItem("VOLABS_LAST_SEEN_MONTH", currentMonthTracker);
                 }
 
                 this.sheetName = savedName;
@@ -2778,6 +3395,8 @@ self.addEventListener('fetch', (e) => {
                     const currentMonthIndex = new Date().getMonth();
                     const indonesianMonths = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
                     name = "Content Plan " + indonesianMonths[currentMonthIndex] + " " + new Date().getFullYear();
+                } else if (!name.includes("Content Plan")) {
+                    name = "Content Plan " + name.trim() + " " + new Date().getFullYear();
                 }
                 this.sheetName = name.trim();
                 localStorage.setItem(CONFIG.STORAGE_KEYS.SHEET_NAME, this.sheetName);
@@ -2944,6 +3563,8 @@ self.addEventListener('fetch', (e) => {
                 renderContentPlan();
                 renderKanban();
                 renderPelaporan();
+                if (typeof renderAbsensi === 'function') renderAbsensi();
+                if (typeof updateApprovalBadge === 'function') updateApprovalBadge();
             } catch (e) {
                 console.error("Koneksi ke Spreadsheet gagal:", e.message);
             } finally {
@@ -3168,7 +3789,72 @@ self.addEventListener('fetch', (e) => {
         }
 
         // 2. RENDER CONTENT PLAN (CARDS & TABLE)
+        function renderPersonsHtml(c, customStyle = "") {
+            const pics = (c.PIC || "").split(',').map(s => s.trim()).filter(Boolean);
+            const collabs = (c["Kolaborator"] || "").split(',').map(s => s.trim()).filter(Boolean);
+
+            // Gabungkan PIC dan Kolaborator, hilangkan duplikat
+            const allPersons = [...new Set([...pics, ...collabs])];
+
+            if (allPersons.length === 0) return `<span class="pic-tag" style="${customStyle}">-</span>`;
+
+            return allPersons.map(p => {
+                const isPic = pics.includes(p);
+                if (isPic) {
+                    return `<span class="pic-tag" style="${customStyle}" title="PIC (Pemilik)">${p}</span>`;
+                } else {
+                    return `<span class="pic-tag" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); ${customStyle}" title="Kolaborator">${p}</span>`;
+                }
+            }).join('');
+        }
+
+        function getActionButtons(c, isSmall = false, isKanban = false) {
+            const picArray = (c.PIC || "").split(',').map(s => s.trim()).filter(Boolean);
+            const isAdmin = currentUser && (currentUser.role === 'Super Admin' || currentUser.role === 'Admin' || currentUser.role === 'DPL');
+            const isOwner = isAdmin || (currentUser && picArray.includes(currentUser.namaLengkap));
+            const collabs = (c["Kolaborator"] || "").split(',').map(s => s.trim());
+            const requests = (c["Request Kolaborasi"] || "").split(',').map(s => s.trim());
+
+            const isCollab = currentUser && collabs.includes(currentUser.namaLengkap);
+            const hasRequested = currentUser && requests.includes(currentUser.namaLengkap);
+
+            let buttonsHtml = '';
+
+            if (isOwner || isCollab) {
+                buttonsHtml += `
+                  <button class="btn-card-action btn-edit-action" style="${isKanban ? 'padding: 0.25rem; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px;' : (isSmall ? 'padding: 0.35rem 0.65rem; font-size: 0.75rem;' : '')}" onclick="openModal('edit', '${c.ID}')" title="Edit Rencana Konten">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="${isKanban ? 'width:13px; height:13px;' : (isSmall ? 'width:13px; height:13px;' : '')}"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    ${isKanban ? '' : (isSmall ? '<span>Edit</span>' : '<span>Edit</span>')}
+                  </button>
+                `;
+                if (isOwner) {
+                    buttonsHtml += `
+                      <button class="btn-card-action btn-del-action" style="${isKanban ? 'padding: 0.25rem; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px;' : (isSmall ? 'padding: 0.35rem 0.65rem; font-size: 0.75rem;' : '')}" onclick="deleteContent('${c.ID}')" title="Hapus Rencana Konten">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="${isKanban ? 'width:13px; height:13px;' : (isSmall ? 'width:13px; height:13px;' : '')}"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        ${isKanban ? '' : (isSmall ? '' : '<span>Hapus</span>')}
+                      </button>
+                    `;
+                }
+            } else if (hasRequested) {
+                buttonsHtml += `
+                  <button class="btn-card-action" style="opacity: 0.6; cursor: not-allowed; background: var(--bg-secondary); color: var(--text-muted); ${isKanban ? 'padding: 0.25rem; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px;' : (isSmall ? 'padding: 0.35rem 0.65rem; font-size: 0.75rem;' : '')}" disabled title="Menunggu Persetujuan PIC">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="${isKanban ? 'width:13px; height:13px;' : (isSmall ? 'width:13px; height:13px;' : '')}"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ${isKanban ? '' : '<span>Pending</span>'}
+                  </button>
+                `;
+            } else {
+                buttonsHtml += `
+                  <button class="btn-card-action" style="background: var(--bg-tertiary); color: var(--primary); border: 1px solid var(--border-color); ${isKanban ? 'padding: 0.25rem; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px;' : (isSmall ? 'padding: 0.35rem 0.65rem; font-size: 0.75rem;' : '')}" onclick="requestCollab('${c.ID}')" title="Ajukan Kolaborasi">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="${isKanban ? 'width:13px; height:13px;' : (isSmall ? 'width:13px; height:13px;' : '')}"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                    ${isKanban ? '' : '<span>Ajukan Kolaborasi</span>'}
+                  </button>
+                `;
+            }
+            return buttonsHtml;
+        }
+
         function renderContentPlan() {
+            updateApprovalBadge();
             const q = document.getElementById('search-input').value.toLowerCase();
             const fPlat = document.getElementById('filter-platform').value;
             const fPillar = document.getElementById('filter-pillar').value;
@@ -3180,12 +3866,13 @@ self.addEventListener('fetch', (e) => {
                     (c.Judul || "").toLowerCase().includes(q) ||
                     (c.Caption || "").toLowerCase().includes(q) ||
                     (c.PIC || "").toLowerCase().includes(q) ||
+                    (c["Kolaborator"] || "").toLowerCase().includes(q) ||
                     (c.Hashtag || "").toLowerCase().includes(q)
                 );
                 const matchPlat = fPlat === "ALL" || c.Platform === fPlat;
                 const matchPillar = fPillar === "ALL" || c["Content Pillar"] === fPillar;
                 const matchStatus = fStatus === "ALL" || c.Status === fStatus;
-                const matchPic = fPic === "ALL" || c.PIC === fPic;
+                const matchPic = fPic === "ALL" || ((c.PIC || "").includes(fPic)) || ((c["Kolaborator"] || "").includes(fPic));
                 return matchQ && matchPlat && matchPillar && matchStatus && matchPic;
             });
 
@@ -3213,7 +3900,7 @@ self.addEventListener('fetch', (e) => {
                 <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">${c["Content Pillar"] || "-"}</div>
                 <span class="badge badge-pillar">${c.Value || "-"}</span>
               </td>
-              <td><span class="pic-tag">${c.PIC || "-"}</span></td>
+              <td>${renderPersonsHtml(c)}</td>
               <td>
                 <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.35rem; line-height: 1.4;">${c.Judul || "-"}</div>
                 <div style="font-size: 0.78rem; color: var(--text-muted);">${c.CTA ? 'CTA: ' + c.CTA : ''}</div>
@@ -3223,14 +3910,7 @@ self.addEventListener('fetch', (e) => {
               <td>${c["Link Publikasi"] ? `<a href="${c["Link Publikasi"]}" target="_blank" style="color:var(--primary); font-weight:600; text-decoration:underline; font-size:0.8rem;">Buka</a>` : '-'}</td>
               <td>
                 <div class="card-actions">
-                  <button class="btn-card-action btn-edit-action" onclick="openModal('edit', '${c.ID}')" title="Edit Rencana Konten">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                    <span>Edit</span>
-                  </button>
-                  <button class="btn-card-action btn-del-action" onclick="deleteContent('${c.ID}')" title="Hapus Rencana Konten">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    <span>Hapus</span>
-                  </button>
+                  ${getActionButtons(c, false)}
                 </div>
               </td>
             </tr>
@@ -3261,16 +3941,11 @@ self.addEventListener('fetch', (e) => {
           ${c["Link Publikasi"] ? `<div style="margin-top:0.35rem;"><a href="${c["Link Publikasi"]}" target="_blank" style="color:var(--primary); font-weight:600; font-size:0.85rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px; height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg> Lihat Publikasi</a></div>` : ''}
           ${c["Foto Bukti"] && c["Foto Bukti"] !== "-" && c["Foto Bukti"] !== "Mengunggah..." && c["Foto Bukti"].startsWith("http") ? `<div style="margin-top:0.35rem;"><a href="${c["Foto Bukti"]}" target="_blank" style="color:#10b981; font-weight:600; font-size:0.85rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px; height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Foto Bukti</a></div>` : (c["Foto Bukti"] === "Mengunggah..." ? `<div style="margin-top:0.35rem; color:var(--text-muted); font-size:0.85rem;">Mengunggah foto...</div>` : '')}
           <div class="card-footer">
-            <span class="pic-tag">${c.PIC || "-"}</span>
+            <div class="pic-tags-wrapper" style="display:flex; flex-wrap:wrap; gap:4px;">
+              ${renderPersonsHtml(c, "margin:0;")}
+            </div>
             <div class="card-actions">
-              <button class="btn-card-action btn-edit-action" onclick="openModal('edit', '${c.ID}')" title="Edit Rencana Konten">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                <span>Edit</span>
-              </button>
-              <button class="btn-card-action btn-del-action" onclick="deleteContent('${c.ID}')" title="Hapus Rencana Konten">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                <span>Hapus</span>
-              </button>
+              ${getActionButtons(c, false)}
             </div>
           </div>
         </div>
@@ -3289,33 +3964,35 @@ self.addEventListener('fetch', (e) => {
               <span class="kanban-count">${items.length}</span>
             </div>
             <div class="kanban-items">
-              ${items.length === 0 ? `<div style="text-align:center; padding:1.5rem 0; font-size:0.78rem; color:var(--text-light);">Kosong</div>` : items.map(c => `
-                <div class="content-card" style="padding: 1.15rem; gap: 0.75rem;">
-                  <div class="card-top">
-                    <span class="card-date" style="font-size:0.75rem;">${cleanDate(c.Tanggal)}</span>
-                    <span class="badge" style="font-size:0.7rem;">${c.Platform}</span>
+              ${items.length === 0 ? `<div style="text-align:center; padding:1.5rem 0; font-size:0.78rem; color:var(--text-light);">Kosong</div>` : items.map(c => {
+                    const picName = (c.PIC || '-').split(',')[0].trim();
+                    const collabCount = (c["Kolaborator"] || '').split(',').filter(Boolean).length;
+                    return `
+                <div class="content-card" style="padding: 0.75rem 0.85rem; gap: 0.45rem; border-radius: 10px;">
+                  <div class="card-top" style="margin-bottom: 0.1rem;">
+                    <span class="badge" style="font-size:0.65rem; padding: 0.15rem 0.45rem;">${c.Platform}</span>
+                    <span class="card-date" style="font-size:0.68rem; color: var(--text-muted);">${cleanDate(c.Tanggal)}</span>
                   </div>
-                  <h5 style="font-size: 0.95rem; margin: 0; line-height: 1.4; color: var(--text-main); font-weight: 700;">${c.Judul}</h5>
-                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.2rem; pt-3; border-top: 1px solid var(--border-color); padding-top: 0.65rem;">
-                    <span class="pic-tag" style="font-size:0.72rem; padding: 0.25rem 0.6rem;">${c.PIC}</span>
-                    <div class="card-actions">
-                      <button class="btn-card-action btn-edit-action" style="padding: 0.35rem 0.65rem; font-size: 0.75rem;" onclick="openModal('edit', '${c.ID}')" title="Edit">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px; height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                        <span>Edit</span>
-                      </button>
-                      <button class="btn-card-action btn-del-action" style="padding: 0.35rem 0.65rem; font-size: 0.75rem;" onclick="deleteContent('${c.ID}')" title="Hapus">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px; height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                      </button>
-                      ${c["Link Publikasi"] ? `<a href="${c["Link Publikasi"]}" target="_blank" class="btn-card-action" style="background:var(--bg-tertiary); color:var(--text-main); padding: 0.35rem 0.65rem; font-size: 0.75rem; border:1px solid var(--border-color); text-decoration:none;" title="Buka Link Publikasi">
+                  <h5 style="font-size: 0.85rem; margin: 0; line-height: 1.35; color: var(--text-main); font-weight: 600;">${c.Judul}</h5>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.25rem; padding-top: 0.45rem; border-top: 1px dashed var(--border-color);">
+                    <div style="font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="PIC: ${c.PIC || '-'}">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px; height:13px; flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                      <span style="overflow: hidden; text-overflow: ellipsis;">${picName}</span>
+                      ${collabCount > 0 ? `<span style="font-size:0.65rem; background:var(--bg-tertiary); padding:1px 4px; border-radius:4px; color:var(--primary); font-weight:600;">+${collabCount}</span>` : ''}
+                    </div>
+                    <div class="card-actions" style="gap: 4px;">
+                      ${getActionButtons(c, true, true)}
+                      ${c["Link Publikasi"] ? `<a href="${c["Link Publikasi"]}" target="_blank" class="btn-card-action" style="background:var(--bg-tertiary); color:var(--text-main); padding: 0.25rem; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; border:1px solid var(--border-color); text-decoration:none;" title="Buka Link Publikasi">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px; height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                       </a>` : ''}
-                      ${c["Foto Bukti"] && c["Foto Bukti"].startsWith("http") ? `<a href="${c["Foto Bukti"]}" target="_blank" class="btn-card-action" style="background:#d1fae5; color:#065f46; padding: 0.35rem 0.65rem; font-size: 0.75rem; border:1px solid #34d399; text-decoration:none;" title="Lihat Foto Bukti">
+                      ${c["Foto Bukti"] && c["Foto Bukti"].startsWith("http") ? `<a href="${c["Foto Bukti"]}" target="_blank" class="btn-card-action" style="background:#d1fae5; color:#065f46; padding: 0.25rem; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; border:1px solid #34d399; text-decoration:none;" title="Lihat Foto Bukti">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px; height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                       </a>` : ''}
                     </div>
                   </div>
                 </div>
-              `).join("")}
+              `;
+                }).join("")}
             </div>
           </div>
         `;
@@ -3345,7 +4022,7 @@ self.addEventListener('fetch', (e) => {
                 // Otomatis ekstrak Bulan dari Tanggal jika kosong atau untuk memastikan filter berfungsi
                 c.Bulan = getBulanFromTanggal(c.Tanggal);
 
-                let matchPic = (filterPic === "Semua PIC" || c.PIC === filterPic);
+                let matchPic = (filterPic === "Semua PIC" || ((c.PIC || "").includes(filterPic)) || ((c["Kolaborator"] || "").includes(filterPic)));
                 let matchBulan = (filterBulan === "Semua Bulan" || c.Bulan === filterBulan);
 
                 let cSkp = c["SKP/KKN"] || "Lainnya";
@@ -3384,7 +4061,7 @@ self.addEventListener('fetch', (e) => {
                 html += `
           <tr style="border-bottom: 1px solid var(--border-color);">
             <td style="padding: 10px; font-size: 0.85rem;">${cleanDate(c.Tanggal)}</td>
-            <td style="padding: 10px; font-size: 0.85rem;">${c.PIC || "-"}</td>
+            <td style="padding: 10px; font-size: 0.85rem;">${renderPersonsHtml(c)}</td>
             <td style="padding: 10px; font-size: 0.85rem;">${c.Bulan || "-"}</td>
             <td style="padding: 10px; font-size: 0.85rem; font-weight:600;">${c["SKP/KKN"] || "-"}</td>
             <td style="padding: 10px; font-size: 0.85rem;">
@@ -3398,6 +4075,125 @@ self.addEventListener('fetch', (e) => {
             tbody.innerHTML = html;
         }
         const modalCrud = document.getElementById('modal-crud');
+        // ==================== APPROVAL LOGIC ====================
+        window.openApprovalModal = function () {
+            const container = document.getElementById('approval-list-container');
+            let html = '';
+
+            // Find all content owned by currentUser that has pending requests
+            const pendingContents = contentPlans.filter(c => {
+                const picArray = (c.PIC || "").split(',').map(s => s.trim()).filter(Boolean);
+                return picArray.includes(currentUser.namaLengkap) &&
+                    c["Request Kolaborasi"] && c["Request Kolaborasi"].trim().length > 0;
+            });
+
+            if (pendingContents.length === 0) {
+                html = `<div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted);">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 48px; height: 48px; margin: 0 auto 1rem auto; opacity: 0.5;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p>Tidak ada permintaan kolaborasi baru saat ini.</p>
+                        </div>`;
+            } else {
+                pendingContents.forEach(c => {
+                    const requests = c["Request Kolaborasi"].split(',').map(s => s.trim()).filter(Boolean);
+                    requests.forEach(reqName => {
+                        html += `
+                        <div class="content-card" style="margin-bottom: 1rem; padding: 1rem; border-left: 4px solid #f59e0b; display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Minta akses kolaborasi pada:</div>
+                            <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-main); font-weight: 600; line-height: 1.3;">${c.Judul || 'Tanpa Judul'}</h4>
+                            <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 0.25rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color);">
+                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(reqName)}&background=random&color=fff&rounded=true" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                                <div style="flex: 1;">
+                                    <div style="font-size: 0.9rem; color: var(--text-main); font-weight: 600;">${reqName}</div>
+                                </div>
+                                <button class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 50px; background: #10b981; border-color: #10b981;" onclick="approveCollab('${c.ID}', '${reqName}')">
+                                    Setujui
+                                </button>
+                            </div>
+                        </div>
+                        `;
+                    });
+                });
+            }
+            container.innerHTML = html;
+
+            const modal = document.getElementById('modal-approval');
+            modal.classList.add('active');
+        };
+
+        window.closeApprovalModal = function () {
+            const modal = document.getElementById('modal-approval');
+            modal.classList.remove('active');
+        };
+
+        window.approveCollab = async function (contentId, reqName) {
+            const idx = contentPlans.findIndex(c => c.ID === contentId);
+            if (idx === -1) return;
+
+            const c = contentPlans[idx];
+
+            // Remove from request list
+            let reqs = (c["Request Kolaborasi"] || "").split(',').map(s => s.trim()).filter(Boolean);
+            reqs = reqs.filter(r => r !== reqName);
+            c["Request Kolaborasi"] = reqs.join(', ');
+
+            // Add to collaborator list
+            let collabs = (c["Kolaborator"] || "").split(',').map(s => s.trim()).filter(Boolean);
+            if (!collabs.includes(reqName)) {
+                collabs.push(reqName);
+                c["Kolaborator"] = collabs.join(', ');
+            }
+
+            // Re-render UI
+            openApprovalModal(); // Refresh the list
+            updateApprovalBadge();
+            renderContentPlan();
+
+            // Sync to backend
+            try {
+                await api.updateContentPlan(c);
+            } catch (err) {
+                console.error("Gagal sinkronisasi approval:", err);
+            }
+        };
+
+        function updateApprovalBadge() {
+            if (!currentUser) return;
+            const badge = document.getElementById('badge-approval');
+            if (!badge) return;
+
+            let count = 0;
+            contentPlans.forEach(c => {
+                const picArray = (c.PIC || "").split(',').map(s => s.trim()).filter(Boolean);
+                if (picArray.includes(currentUser.namaLengkap) && c["Request Kolaborasi"]) {
+                    const reqs = c["Request Kolaborasi"].split(',').map(s => s.trim()).filter(Boolean);
+                    count += reqs.length;
+                }
+            });
+
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline-flex';
+                badge.style.alignItems = 'center';
+                badge.style.justifyContent = 'center';
+                if (window.lastNotifiedCollabCount !== count) {
+                    window.lastNotifiedCollabCount = count;
+                    setTimeout(async () => {
+                        const res = await showCustomDialog({
+                            title: "🔔 Permintaan Kolaborasi Baru!",
+                            message: `Terdapat ${count} permintaan kolaborasi dari rekan volunteer yang menunggu persetujuan Anda. Klik tombol "Buka Approval" untuk menyetujui.`,
+                            confirmText: "Buka Approval"
+                        });
+                        if (res) openApprovalModal();
+                    }, 1200);
+                }
+            } else {
+                badge.style.display = 'none';
+                window.lastNotifiedCollabCount = 0;
+            }
+        }
+
         window.openModal = function (mode, id = null) {
             document.getElementById('form-crud').reset();
             if (mode === 'add') {
@@ -3407,7 +4203,6 @@ self.addEventListener('fetch', (e) => {
                 document.getElementById('field-platform').value = "Instagram";
                 document.getElementById('field-pillar').value = "Educational (Edukasi)";
                 document.getElementById('field-value').value = "Informasi";
-                document.getElementById('field-pic').value = Object.keys(dataVolunteer).sort()[0];
                 document.getElementById('field-skp').value = "-";
                 document.getElementById('field-status').value = "Idea / Konsep";
                 document.getElementById('field-judul').value = "";
@@ -3422,7 +4217,7 @@ self.addEventListener('fetch', (e) => {
                 const item = contentPlans.find(c => c.ID === id);
                 if (item) {
                     document.getElementById('field-id').value = item.ID || "";
-                    
+
                     let rawTgl = item.Tanggal || "";
                     if (typeof rawTgl === 'string' && rawTgl.includes("T")) rawTgl = rawTgl.split("T")[0];
                     if (rawTgl === "-") rawTgl = "";
@@ -3431,7 +4226,6 @@ self.addEventListener('fetch', (e) => {
                     document.getElementById('field-platform').value = item.Platform || "Instagram";
                     document.getElementById('field-pillar').value = item["Content Pillar"] || "Educational (Edukasi)";
                     document.getElementById('field-value').value = item.Value || "Informasi";
-                    document.getElementById('field-pic').value = item.PIC || Object.keys(dataVolunteer).sort()[0];
                     document.getElementById('field-skp').value = item["SKP/KKN"] || "-";
                     document.getElementById('field-status').value = item.Status || "Idea / Konsep";
                     document.getElementById('field-judul').value = item.Judul || "";
@@ -3447,6 +4241,34 @@ self.addEventListener('fetch', (e) => {
             window.handleSkpChange();
             // Kosongkan input file agar tidak bawa sisa sebelumnya
             document.getElementById('field-foto-bukti').value = "";
+
+            // Populate & Tampilkan checklist khusus Super Admin / Admin
+            const groupAdminCollab = document.getElementById('group-admin-collab');
+            const collabContainer = document.getElementById('admin-collab-list');
+            if (groupAdminCollab && collabContainer) {
+                const isSuperOrAdmin = currentUser && (currentUser.role === 'Super Admin' || currentUser.role === 'Admin');
+                if (isSuperOrAdmin) {
+                    groupAdminCollab.style.display = 'block';
+                    collabContainer.innerHTML = "";
+                    const currentCollabs = (mode === 'edit' && id) ?
+                        ((contentPlans.find(c => c.ID === id) || {})["Kolaborator"] || "").split(',').map(s => s.trim()) : [];
+                    const currentPics = (mode === 'edit' && id) ?
+                        ((contentPlans.find(c => c.ID === id) || {}).PIC || "").split(',').map(s => s.trim()) : [];
+                    const allSelected = [...new Set([...currentPics, ...currentCollabs])];
+
+                    Object.keys(dataVolunteer).sort().forEach(vName => {
+                        const isChecked = allSelected.includes(vName) ? 'checked' : '';
+                        const label = document.createElement('label');
+                        label.style.cssText = "display: flex; align-items: center; gap: 6px; font-size: 11px; padding: 6px; cursor: pointer; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-secondary);";
+                        label.innerHTML = `<input type="checkbox" name="admin_collab_check" value="${vName}" ${isChecked} style="cursor: pointer;"> <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vName}</span>`;
+                        collabContainer.appendChild(label);
+                    });
+                } else {
+                    groupAdminCollab.style.display = 'none';
+                    collabContainer.innerHTML = "";
+                }
+            }
+
             modalCrud.classList.add('active');
         };
 
@@ -3474,13 +4296,13 @@ self.addEventListener('fetch', (e) => {
         // Submit CRUD Form (Tanpa Bar Loading, Ikon Refresh Berputar)
         document.getElementById('form-crud').addEventListener('submit', async (e) => {
             e.preventDefault();
+
             const id = document.getElementById('field-id').value;
             const itemData = {
                 Tanggal: document.getElementById('field-tanggal').value,
                 Platform: document.getElementById('field-platform').value,
                 "Content Pillar": document.getElementById('field-pillar').value,
                 Value: document.getElementById('field-value').value,
-                PIC: document.getElementById('field-pic').value,
                 "SKP/KKN": document.getElementById('field-skp').value,
                 Status: document.getElementById('field-status').value,
                 Judul: document.getElementById('field-judul').value,
@@ -3504,12 +4326,34 @@ self.addEventListener('fetch', (e) => {
 
             // 1. OPTIMISTIC UI UPDATE
             const isEdit = !!id;
+            const isSuperOrAdmin = currentUser && (currentUser.role === 'Super Admin' || currentUser.role === 'Admin');
+
+            if (isSuperOrAdmin) {
+                const checkedVolunteers = Array.from(document.querySelectorAll('input[name="admin_collab_check"]:checked')).map(cb => cb.value);
+                if (checkedVolunteers.length > 0) {
+                    if (!isEdit) {
+                        itemData.PIC = checkedVolunteers[0];
+                        itemData["Kolaborator"] = checkedVolunteers.slice(1).join(', ');
+                    } else {
+                        const existingPic = (contentPlans.find(c => c.ID === id) || {}).PIC || "";
+                        const onlyCollabs = checkedVolunteers.filter(v => !existingPic.includes(v));
+                        itemData["Kolaborator"] = onlyCollabs.join(', ');
+                    }
+                } else if (!isEdit) {
+                    itemData.PIC = currentUser.namaLengkap;
+                    itemData["Kolaborator"] = "";
+                }
+            } else if (!isEdit) {
+                itemData.PIC = currentUser.namaLengkap;
+            }
+
             if (isEdit) {
                 itemData.ID = id;
                 const idx = contentPlans.findIndex(c => c.ID === id);
                 if (idx !== -1) contentPlans[idx] = { ...contentPlans[idx], ...itemData };
             } else {
                 itemData.ID = "CP-TEMP-" + new Date().getTime();
+                if (!itemData.PIC) itemData.PIC = currentUser.namaLengkap;
                 contentPlans.unshift(itemData);
             }
 
@@ -3528,7 +4372,7 @@ self.addEventListener('fetch', (e) => {
 
                     // Setelah POST berhasil di background, ambil data final secara diam-diam
                     // Ini berguna agar foto base64/status loading terganti dengan URL Drive asli
-                    const res = await fetch(`${api.apiUrl}?action=read&sheetName=${api.sheetName}&t=${new Date().getTime()}`);
+                    const res = await fetch(`${api.apiUrl}?action=read&sheetName=${api.sheetName}&t=${new Date().getTime()}`, { cache: "no-store" });
                     const json = await res.json();
                     if (json.status === "success" && json.data) {
                         contentPlans = json.data;
@@ -3541,6 +4385,40 @@ self.addEventListener('fetch', (e) => {
                 }
             })();
         });
+
+        // Request Collaboration
+        window.requestCollab = async function (id) {
+            const confirmed = await showCustomDialog({
+                title: "Ajukan Keterlibatan",
+                message: "Apakah Anda yakin ingin mengajukan diri sebagai Kolaborator untuk konten ini? PIC konten harus menyetujui permintaan Anda sebelum Anda bisa mengeditnya.",
+                type: "confirm",
+                confirmText: "Ajukan",
+                confirmColor: "var(--primary)"
+            });
+            if (confirmed) {
+                const idx = contentPlans.findIndex(c => c.ID === id);
+                if (idx !== -1) {
+                    // Optimistic update
+                    let reqs = (contentPlans[idx]["Request Kolaborasi"] || "").split(',').map(s => s.trim()).filter(Boolean);
+                    if (!reqs.includes(currentUser.namaLengkap)) {
+                        reqs.push(currentUser.namaLengkap);
+                        contentPlans[idx]["Request Kolaborasi"] = reqs.join(', ');
+
+                        renderDashboard();
+                        renderContentPlan();
+
+                        // Backend Sync
+                        (async () => {
+                            try {
+                                await api.updateContentPlan(contentPlans[idx]);
+                            } catch (err) {
+                                console.error("Gagal sinkronisasi request kolaborasi:", err);
+                            }
+                        })();
+                    }
+                }
+            }
+        };
 
         // Delete Content (Tanpa Bar Loading, Ikon Refresh Berputar)
         window.deleteContent = async function (id) {
@@ -3572,17 +4450,13 @@ self.addEventListener('fetch', (e) => {
             }
         };
 
-        // Tombol Ganti Bulan / Sheet Aktif
-        document.getElementById('btn-change-sheet').addEventListener('click', async () => {
-            const newSheet = await showCustomDialog({
-                title: "Ganti Bulan / Sheet",
-                message: "Masukkan nama Bulan atau Sheet yang ingin dibuka / dibuat (contoh: Agustus, September):",
-                type: "prompt",
-                inputValue: api.getSheetName(),
-                confirmText: "Simpan",
-                confirmColor: "var(--primary)"
-            });
-            if (newSheet && newSheet.trim() && newSheet.trim() !== api.getSheetName()) {
+        // Logic Popover Ganti Bulan / Sheet Aktif
+        async function changeSheetFromPopover(newSheet) {
+            document.getElementById('sheet-popover').classList.remove('show');
+            if (newSheet && !newSheet.includes("Content Plan")) {
+                newSheet = "Content Plan " + newSheet.trim() + " " + new Date().getFullYear();
+            }
+            if (newSheet && newSheet.trim() !== api.getSheetName()) {
                 setRefreshLoading(true);
                 api.setSheetName(newSheet.trim());
                 if (api.isConfigured()) {
@@ -3594,6 +4468,31 @@ self.addEventListener('fetch', (e) => {
                 }
                 await refreshData();
             }
+        }
+
+        async function promptNewSheet() {
+            document.getElementById('sheet-popover').classList.remove('show');
+            const newSheet = await showCustomDialog({
+                title: "Ganti Bulan / Sheet",
+                message: "Masukkan nama Bulan atau Sheet yang ingin dibuat:",
+                type: "prompt",
+                inputValue: api.getSheetName(),
+                confirmText: "Simpan",
+                confirmColor: "var(--primary)"
+            });
+            if (newSheet && newSheet.trim() && newSheet.trim() !== api.getSheetName()) {
+                changeSheetFromPopover(newSheet);
+            }
+        }
+
+        // Close popover when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.popover-container')) {
+                const popover = document.getElementById('sheet-popover');
+                if (popover && popover.classList.contains('show')) {
+                    popover.classList.remove('show');
+                }
+            }
         });
 
         // Theme Toggle (Default Light Mode jika belum diatur)
@@ -3603,12 +4502,14 @@ self.addEventListener('fetch', (e) => {
 
         if (isDark) {
             document.documentElement.setAttribute('data-theme', 'dark');
+            btnTheme.checked = true;
         } else {
             document.documentElement.removeAttribute('data-theme');
+            btnTheme.checked = false;
         }
 
-        btnTheme.addEventListener('click', () => {
-            isDark = !isDark;
+        btnTheme.addEventListener('change', (e) => {
+            isDark = e.target.checked;
             if (isDark) {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, 'dark');
@@ -3619,24 +4520,42 @@ self.addEventListener('fetch', (e) => {
         });
 
         // === CETAK LAPORAN ===
+        function autoFillPrintFields(picName) {
+            if (picName && dataVolunteer[picName]) {
+                const d = dataVolunteer[picName];
+                const printNim = document.getElementById('print-nim');
+                const printProdi = document.getElementById('print-prodi');
+                const printFakultas = document.getElementById('print-fakultas');
+                if (printNim) printNim.value = d.nim || '';
+                if (printProdi) printProdi.value = d.jur || '';
+                if (printFakultas) printFakultas.value = d.fak || '';
+            } else {
+                document.getElementById('print-nim').value = '';
+                document.getElementById('print-prodi').value = '';
+                document.getElementById('print-fakultas').value = '';
+            }
+        }
+
         const modalPrint = document.getElementById('modal-print');
 
         document.getElementById('btn-print-report').addEventListener('click', () => {
             // Load saved values
-            const pNIM = localStorage.getItem('volabs_pipd_print_nim') || '';
-            const pProdi = localStorage.getItem('volabs_pipd_print_prodi') || '';
-            const pFak = localStorage.getItem('volabs_pipd_print_fak') || '';
-            const pPem = localStorage.getItem('volabs_pipd_print_pembimbing') || '';
             const pPer = localStorage.getItem('volabs_pipd_print_periode') || `1 ${api.getSheetName()} s.d. 31 ${api.getSheetName()} 2026`;
-
-            document.getElementById('print-nim').value = pNIM;
-            document.getElementById('print-prodi').value = pProdi;
-            document.getElementById('print-fakultas').value = pFak;
-            document.getElementById('print-pembimbing').value = pPem;
             document.getElementById('print-periode').value = pPer;
 
             const filterPic = document.getElementById('filter-lapor-pic').value;
-            if (filterPic) document.getElementById('print-pic').value = filterPic;
+            const targetPic = (filterPic && filterPic !== 'Semua PIC') ? filterPic : (currentUser ? currentUser.namaLengkap : '');
+
+            if (targetPic && dataVolunteer[targetPic]) {
+                document.getElementById('print-pic').value = targetPic;
+                autoFillPrintFields(targetPic);
+            } else if (filterPic) {
+                document.getElementById('print-pic').value = filterPic;
+                autoFillPrintFields(filterPic);
+            } else {
+                document.getElementById('print-pic').value = 'Semua PIC';
+                autoFillPrintFields('Semua PIC');
+            }
 
             modalPrint.classList.add('active');
         });
@@ -3644,29 +4563,35 @@ self.addEventListener('fetch', (e) => {
         document.getElementById('btn-close-print').addEventListener('click', () => modalPrint.classList.remove('active'));
         document.getElementById('btn-cancel-print').addEventListener('click', () => modalPrint.classList.remove('active'));
 
-        document.getElementById('form-print').addEventListener('submit', (e) => {
+        document.getElementById('btn-download-pdf').addEventListener('click', (e) => {
             e.preventDefault();
+            handleExport('pdf');
+        });
 
+        document.getElementById('btn-download-doc').addEventListener('click', (e) => {
+            e.preventDefault();
+            handleExport('doc');
+        });
+
+        function handleExport(type) {
             const pic = document.getElementById('print-pic').value;
             const nim = document.getElementById('print-nim').value;
             const prodi = document.getElementById('print-prodi').value;
             const fak = document.getElementById('print-fakultas').value;
-            const pemb = document.getElementById('print-pembimbing').value;
             const periode = document.getElementById('print-periode').value;
 
             // Save to localStorage for convenience
             localStorage.setItem('volabs_pipd_print_nim', nim);
             localStorage.setItem('volabs_pipd_print_prodi', prodi);
             localStorage.setItem('volabs_pipd_print_fak', fak);
-            localStorage.setItem('volabs_pipd_print_pembimbing', pemb);
             localStorage.setItem('volabs_pipd_print_periode', periode);
 
             modalPrint.classList.remove('active');
 
-            generateAndPrintReport(pic, nim, prodi, fak, pemb, periode);
-        });
+            generateAndExportReport(pic, nim, prodi, fak, periode, type);
+        }
 
-        function generateAndPrintReport(pic, nim, prodi, fak, pemb, periode) {
+        function generateAndExportReport(pic, nim, prodi, fak, periode, type) {
             const displayPic = pic === 'Semua PIC' ? 'Seluruh Volunteer PIPD (Kompilasi)' : pic;
 
             document.getElementById('out-nama').textContent = displayPic;
@@ -3678,9 +4603,31 @@ self.addEventListener('fetch', (e) => {
             // Signatures
             document.getElementById('out-ttd-nama').textContent = displayPic;
             document.getElementById('out-ttd-nim').textContent = nim;
-            document.getElementById('out-pembimbing').textContent = pemb || "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
             // Generate data table
-            const filtered = window.currentFilteredReport || [];
+            const filterBulan = document.getElementById('filter-lapor-bulan').value || "Semua Bulan";
+            const filterSkp = document.getElementById('filter-lapor-skp').value || "Semua SKP";
+
+            const filtered = contentPlans.filter(c => {
+                const getBulanFromTanggal = (tanggal) => {
+                    if (!tanggal) return "-";
+                    const parts = tanggal.split('-');
+                    if (parts.length >= 2) {
+                        const monthIndex = parseInt(parts[1], 10) - 1;
+                        const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                        if (monthIndex >= 0 && monthIndex < 12) return months[monthIndex];
+                    }
+                    return "-";
+                };
+
+                let cBulan = getBulanFromTanggal(c.Tanggal);
+                let matchPic = (pic === "Semua PIC" || ((c.PIC || "").includes(pic)) || ((c["Kolaborator"] || "").includes(pic)));
+                let matchBulan = (filterBulan === "Semua Bulan" || cBulan === filterBulan);
+                let cSkp = c["SKP/KKN"] || "Lainnya";
+                if (cSkp === "-") cSkp = "Lainnya";
+                let matchSkp = (filterSkp === "Semua SKP" || cSkp === filterSkp);
+                return matchPic && matchBulan && matchSkp;
+            });
+
             const tbody = document.querySelector('#print-data-table tbody');
 
             if (filtered.length === 0) {
@@ -3691,7 +4638,6 @@ self.addEventListener('fetch', (e) => {
                 });
                 return;
             }
-
 
             let html = "";
             filtered.forEach((c, idx) => {
@@ -3717,76 +4663,273 @@ self.addEventListener('fetch', (e) => {
 
             tbody.innerHTML = html;
 
-            // Panggil dialog cetak bawaan browser
-            setTimeout(() => {
-                window.print();
-            }, 300); // Sedikit delay agar DOM siap
+            // Trigger Export
+            const printArea = document.getElementById('print-area');
+            // Mengubah text tombol sementara
+            const btnPdf = document.getElementById('btn-download-pdf');
+            const btnDoc = document.getElementById('btn-download-doc');
+            const originalPdfText = btnPdf.innerHTML;
+            const originalDocText = btnDoc.innerHTML;
+
+            if (type === 'doc') {
+                printArea.classList.add('export-active');
+                btnDoc.innerHTML = 'Menyiapkan DOC...';
+
+                setTimeout(() => {
+                    // Export to Word
+                    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Laporan KKN</title></" + "head><" + "body>";
+                    const footer = "</" + "body></" + "html>";
+                    const styles = "<style>#print-area { font-family: Arial, sans-serif; font-size: 11pt; color: #000; line-height: 1.15; padding: 0; } table { border-collapse: collapse; width: 100%; font-size: 11pt; } .print-data-table th, .print-data-table td { border: 1px solid #000; padding: 4px; text-align: center; } .print-data-table th { font-weight: bold; } .print-title { text-align: center; font-weight: bold; font-size: 11pt; margin-bottom: 15px; } .print-subtitle { font-weight: bold; text-transform: uppercase; margin-bottom: 5px; } .print-info-table td { padding: 2px 0; border: none; } </style>";
+                    const htmlContent = header + styles + "<div id='print-area'>" + printArea.innerHTML + "</div>" + footer;
+
+                    const blob = new Blob(['\ufeff', htmlContent], {
+                        type: 'application/msword'
+                    });
+
+                    const url = URL.createObjectURL(blob);
+                    const downloadLink = document.createElement("a");
+                    downloadLink.href = url;
+                    downloadLink.download = `Laporan_Volunteer_${pic.replace(/ /g, '_')}.doc`;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    URL.revokeObjectURL(url);
+
+                    printArea.classList.remove('export-active');
+                    btnDoc.innerHTML = originalDocText;
+                }, 500);
+            } else if (type === 'pdf') {
+                // ISOLASI PRINT: Menyembunyikan elemen WordPress tanpa merusak event listener
+                document.body.classList.add('is-printing');
+                let parent = document.getElementById('print-area').parentElement;
+                while (parent && parent !== document.body && parent !== document.documentElement) {
+                    parent.classList.add('print-ancestor');
+                    parent = parent.parentElement;
+                }
+
+                setTimeout(() => {
+                    window.print();
+
+                    // Cleanup setelah print
+                    document.body.classList.remove('is-printing');
+                    let p = document.getElementById('print-area').parentElement;
+                    while (p && p !== document.body && p !== document.documentElement) {
+                        p.classList.remove('print-ancestor');
+                        p = p.parentElement;
+                    }
+                    btnPdf.innerHTML = originalPdfText;
+                }, 300);
+            }
         }
 
         // ==========================================
-        // LOGIKA ABSENSI & MONITORING
+        // AUTHENTICATION & RBAC LOGIC
         // ==========================================
+        let currentUser = null;
+
+        function checkAuth() {
+            const savedUser = localStorage.getItem('volabs_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('login-screen').style.display = 'none';
+                applyRBAC();
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+            }
+        }
+
+        function applyRBAC() {
+            // Tampilkan nama dan role di UI
+            if (currentUser) {                // Tampilkan nama depan saja agar tidak memakan tempat
+                const firstName = currentUser.namaLengkap.split(' ')[0];
+                const uNama = document.getElementById('user-nama');
+                const uRole = document.getElementById('user-role');
+                const sbNama = document.getElementById('sidebar-user-nama');
+                const sbRole = document.getElementById('sidebar-user-role');
+                if (uNama) uNama.textContent = firstName;
+                if (uRole) uRole.textContent = currentUser.role;
+                if (sbNama) sbNama.textContent = firstName;
+                if (sbRole) sbRole.textContent = currentUser.role;
+
+                // Auto-fill form absensi
+                const absNamaField = document.getElementById("abs-nama");
+                if (absNamaField) {
+                    absNamaField.value = currentUser.namaLengkap;
+                    absNamaField.readOnly = true;
+                    absNamaField.style.backgroundColor = 'var(--bg-tertiary)';
+                    // Memicu trigger pengisian kolom lain (divisi, smt, dll)
+                    handleAbsensiNama();
+                }
+            }
+
+            // Sembunyikan menu berdasarkan Role
+            const isAdmin = currentUser && (currentUser.role === 'Super Admin' || currentUser.role === 'Admin' || currentUser.role === 'DPL');
+
+            const filterLaporPic = document.getElementById('filter-lapor-pic');
+            if (filterLaporPic) {
+                if (!isAdmin) {
+                    // Pastikan opsi dengan nama user ada sebelum di-set
+                    if (!Array.from(filterLaporPic.options).some(opt => opt.value === currentUser.namaLengkap)) {
+                        let opt = document.createElement('option');
+                        opt.value = currentUser.namaLengkap;
+                        opt.textContent = currentUser.namaLengkap;
+                        filterLaporPic.appendChild(opt);
+                    }
+                    filterLaporPic.value = currentUser.namaLengkap;
+                    filterLaporPic.disabled = true;
+                    filterLaporPic.style.backgroundColor = 'var(--bg-tertiary)';
+                } else {
+                    filterLaporPic.disabled = false;
+                    filterLaporPic.style.backgroundColor = 'var(--bg-secondary)';
+                }
+                if (typeof renderPelaporan === 'function') renderPelaporan();
+            }
+
+            if (typeof renderDashboard === 'function') renderDashboard();
+            if (typeof renderContentPlan === 'function') renderContentPlan();
+            if (typeof renderKanban === 'function') renderKanban();
+            if (typeof renderAbsensi === 'function') renderAbsensi();
+            if (typeof updateApprovalBadge === 'function') updateApprovalBadge();
+
+
+            if (currentUser.role === 'Mahasiswa') {
+                // Mahasiswa hanya bisa melihat Absen, Proker, Progres
+            } else if (isAdmin) {
+                // Admin bisa melihat semuanya
+            }
+        }
+
+        async function handleLogin(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const btn = document.getElementById('btn-login');
+            const userVal = document.getElementById('login-username').value.trim();
+            const passVal = document.getElementById('login-password').value.trim();
+
+            if (!userVal || !passVal) {
+                showCustomDialog({ title: "Peringatan", message: "Username dan password tidak boleh kosong!", confirmText: "Mengerti" });
+                return;
+            }
+
+            btn.innerHTML = '<span class="spinner" style="border-color:#fff; border-bottom-color:transparent; width:16px; height:16px;"></span> Memverifikasi...';
+            btn.disabled = true;
+
+            try {
+                // Gunakan GET request ke Google Apps Script agar terhindar dari CORS error saat membaca JSON Response
+                const loginUrl = `${api.apiUrl}?action=login&username=${encodeURIComponent(userVal)}&password=${encodeURIComponent(passVal)}&t=${new Date().getTime()}`;
+                const response = await fetch(loginUrl, { cache: "no-store" });
+
+                const result = await response.json();
+                if (result.status === "success") {
+                    localStorage.setItem('volabs_user', JSON.stringify(result.user));
+                    checkAuth();
+                    showBannerAlert('Selamat datang, ' + result.user.namaLengkap);
+                    if (typeof refreshData === 'function') refreshData();
+                } else {
+                    showCustomDialog({ title: "Login Gagal", message: result.message || 'Username atau password salah!', confirmText: "Tutup" });
+                }
+            } catch (err) {
+                showCustomDialog({ title: "Kesalahan Jaringan", message: 'Gagal menghubungi server. Pastikan internet Anda aktif dan Web App URL valid.', confirmText: "Tutup" });
+            } finally {
+                btn.innerHTML = 'Masuk ke Dashboard';
+                btn.disabled = false;
+            }
+        }
+
+        function showBannerAlert(message) {
+            let banner = document.getElementById('login-banner-alert');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'login-banner-alert';
+                banner.className = 'banner-alert';
+                banner.innerHTML = `
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                    <span></span>
+                `;
+                document.body.appendChild(banner);
+            }
+            banner.querySelector('span').innerText = message;
+
+            // Trigger animation
+            setTimeout(() => {
+                banner.classList.add('show');
+            }, 10);
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                banner.classList.remove('show');
+            }, 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem('volabs_user');
+            currentUser = null;
+            window.lastNotifiedCollabCount = 0;
+            document.getElementById('login-screen').style.display = 'flex';
+            showCustomDialog({ title: "Logout", message: 'Anda telah keluar dari sesi.', confirmText: "Tutup" });
+        }
+
+        // ==========================================
+        // ROUTING
+        // ========================================================
         function switchAbsensiTab(tab) {
             document.querySelectorAll('.absensi-tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.absensi-subview').forEach(v => v.classList.remove('active'));
-            event.target.classList.add('active');
 
             if (tab === 'form') {
+                document.querySelector('.absensi-tab-btn[onclick*="form"]').classList.add('active');
                 document.getElementById('absensi-form').classList.add('active');
             } else {
+                document.querySelector('.absensi-tab-btn[onclick*="monitor"]').classList.add('active');
                 document.getElementById('absensi-monitor').classList.add('active');
                 loadMonitoring();
             }
         }
 
         const dataVolunteer = {
-            "Abdullatif Fuadi": { smt: "6", fak: "FDKI", jur: "KPI", div: "Operator Sapu Jagat" },
-            "Raka Dian Pratama": { smt: "8", fak: "FDKI", jur: "KPI", div: "Mentor Editor Video" },
-            "Adil Jihad Darmawan": { smt: "8", fak: "FUA", jur: "BSA", div: "Mentor Editor Video" },
-            "Siti Hamidah": { smt: "6", fak: "FDKI", jur: "KPI", div: "Mentor Fotografer/Videografer" },
-            "Auliya Rahmi": { smt: "6", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Mentor Fotografer/Videografer" },
-            "Inayatul 'Azizi": { smt: "8", fak: "FDKI", jur: "KPI", div: "Mentor Desain Grafis" },
-            "M. Surya Fadlilah Ramadhan": { smt: "6", fak: "FITK", jur: "Tadris Bahasa Inggris", div: "Mentor Desain Grafis" },
-            "RIZKI FATUROHMAN": { smt: "6", fak: "FUA", jur: "BSA", div: "Editor Video" },
-            "Muhammad Adam Habibie": { smt: "4", fak: "FUA", jur: "BSA", div: "Editor Video" },
-            "Muhammad Lazuardi Ramadhani": { smt: "2", fak: "FEBI", jur: "Ekonomi Syariah", div: "Editor Video" },
-            "Azza Taqiuddin Mubarok": { smt: "6", fak: "FDKI", jur: "KPI", div: "Editor Video" },
-            "Abdul Karim": { smt: "4", fak: "FDKI", jur: "KPI", div: "Editor Video" },
-            "Muhammad Rafly Maulana": { smt: "4", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Editor Video" },
-            "Amirul Abdillah Hakim": { smt: "2", fak: "FITK", jur: "PJJ Pendidikan Bahasa Arab", div: "Editor Video" },
-            "M Rizki Maulana": { smt: "6", fak: "FUA", jur: "Ilmu Hadis", div: "Editor Video" },
-            "Ahmad sakhi habibi Habibi": { smt: "2", fak: "FEBI", jur: "Pariwisata Syariah", div: "Editor Video" },
-            "Cahyo Ferdhinan": { smt: "4", fak: "FDKI", jur: "PMI", div: "Editor Video" },
-            "Dwi Juniarti Mirwandini": { smt: "6", fak: "FUA", jur: "Tasawuf dan Psikoterapi", div: "Editor Video" },
-            "Lu’lu Atul Ainiyah": { smt: "4", fak: "FUA", jur: "BSA", div: "Editor Video" },
-            "Naura Azzahra Akhmadi Tadjwid": { smt: "4", fak: "FDKI", jur: "KPI", div: "Editor Video" },
-            "Anjani Yuniarti": { smt: "6", fak: "FDKI", jur: "KPI", div: "Editor Video" },
-            "Zalfa Nabila": { smt: "2", fak: "FITK", jur: "PGMI", div: "Editor Video" },
-            "Nabila Ainurrahmah": { smt: "4", fak: "FITK", jur: "Tadris Bahasa Indonesia", div: "Editor Video" },
-            "Masya Islamiah": { smt: "4", fak: "FITK", jur: "Tadris Bahasa Inggris", div: "Editor Video" },
-            "Hanny Habibah Olansya Iyanuarinka": { smt: "6", fak: "FITK", jur: "Tadris Matematika", div: "Editor Video" },
-            "SRI WULAN APRILIYANTI": { smt: "6", fak: "FUA", jur: "Tasawuf", div: "Editor Video" },
-            "NURUL RAMADHANI": { smt: "4", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Editor Video" },
-            "Fajar Nur sidik": { smt: "4", fak: "FDKI", jur: "KPI", div: "Desain Grafis" },
-            "Farhan Hilmy Mubaarok": { smt: "6", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Desain Grafis" },
-            "Nur Sahid": { smt: "4", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Desain Grafis" },
-            "Sofiyatul Zannah": { smt: "4", fak: "FUA", jur: "Ilmu Al-Qur’an", div: "Desain Grafis" },
-            "Irfan Mubarok": { smt: "4", fak: "FITK", jur: "Informatika", div: "Operator Podcast" },
-            "Dadan Danu": { smt: "6", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Operator Podcast" },
-            "Syarif Abdurohman": { smt: "6", fak: "FDKI", jur: "KPI", div: "Operator Podcast" },
-            "Aminah Amna": { smt: "4", fak: "FDKI", jur: "KPI", div: "Operator Podcast" },
-            "Ziyah Nujumul Inayah": { smt: "4", fak: "FITK", jur: "PGMI", div: "Operator Podcast" },
-            "Daffa Luthfillah": { smt: "4", fak: "FUA", jur: "Ilmu Al-Qur'an dan Tafsir", div: "Fotografer/Videografer" },
-            "Faiz Abdur Rojib": { smt: "6", fak: "FDKI", jur: "KPI", div: "Fotografer/Videografer" },
-            "Devina Nuramalina": { smt: "6", fak: "FDKI", jur: "BKI", div: "Fotografer/Videografer" },
-            "Nisa Nurmalasari": { smt: "6", fak: "FDKI", jur: "KPI", div: "Fotografer/Videografer" },
-            "Regar Herlambang": { smt: "4", fak: "FITK", jur: "Tadris IPS", div: "Fotografer/Videografer" },
-            "Rosiana Sari": { smt: "6", fak: "FUA", jur: "Tasawuf", div: "Fotografer/Videografer" },
-            "Tathia Putri Inasyah": { smt: "4", fak: "FEBI", jur: "Akuntansi Syariah", div: "Operator Podcast" },
-            "Muslikah Anggrayni": { smt: "6", fak: "FDKI", jur: "BKI", div: "Operator Podcast" },
-            "SITI ROKHIYA": { smt: "4", fak: "FDKI", jur: "KPI", div: "Operator Podcast" },
-            "Eva Sulastri": { smt: "6", fak: "FDKI", jur: "KPI", div: "Operator Podcast" },
-            "LAILA ULFATUR RAHMAH": { smt: "6", fak: "FDKI", jur: "KPI", div: "Fotografer/Videografer" }
+            "Siti Hamidah": { smt: "6", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Mentor Fotografer/Videografer", nim: "2384110102", wa: "6281320995472" },
+            "Auliya Rahmi": { smt: "6", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Mentor Fotografer/Videografer", nim: "2381020029", wa: "62895404577828" },
+            "M. Surya Fadlilah Ramadhan": { smt: "6", fak: "FITK", jur: "Tadris Bahasa Inggris", div: "Mentor Desain Grafis", nim: "2381030113", wa: "6282185090756" },
+            "Rizki Faturohman": { smt: "6", fak: "FUA", jur: "Bahasa Dan Sastra Arab", div: "Editor Video", nim: "2385150043", wa: "6281394301290" },
+            "Muhammad Adam Habibie": { smt: "4", fak: "FUA", jur: "Bahasa Dan Sastra Arab", div: "Editor Video", nim: "2485150040", wa: "6289526573241" },
+            "Muhammad Lazuardi Ramadhani": { smt: "2", fak: "FASYA", jur: "Ekonomi Syariah", div: "Editor Video", nim: "2530212139", wa: "6289699062022" },
+            "Azza Taqiuddin Mubarok": { smt: "6", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Editor Video", nim: "2384110019", wa: "6285624891772" },
+            "Abdul Karim": { smt: "4", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Editor Video", nim: "2484110062", wa: "6282240227905" },
+            "Muhammad Rafly Maulana": { smt: "4", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Editor Video", nim: "2481020044", wa: "6285281742740" },
+            "Amirul Abdillah Hakim": { smt: "2", fak: "FITK", jur: "PJJ Pendidikan Bahasa Arab", div: "Editor Video", nim: "2530113072", wa: "6285784215990" },
+            "M Rizki Maulana": { smt: "6", fak: "FUA", jur: "Ilmu Hadis", div: "Editor Video", nim: "2385140026", wa: "6285712221459" },
+            "Ahmad Sakhi Habibi Habibi": { smt: "2", fak: "FEBI", jur: "Pariwisata Syariah", div: "Editor Video", nim: "2530214029", wa: "6281214677120" },
+            "Cahyo Ferdhinan": { smt: "4", fak: "FDKI", jur: "Pengembangan Masyarakat Islam", div: "Editor Video", nim: "2484120001", wa: "6285281661009" },
+            "Dwi Juniarti Mirwandini": { smt: "6", fak: "FUA", jur: "Aqidah Dan Filsafat Islam", div: "Editor Video", nim: "2385160011", wa: "6283829812717" },
+            "Lu’Lu Atul Ainiyah": { smt: "4", fak: "FUA", jur: "Bahasa Dan Sastra Arab", div: "Editor Video", nim: "2485150027", wa: "6287717776727" },
+            "Naura Azzahra Akhmadi Tadjwid": { smt: "4", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Editor Video", nim: "2484110098", wa: "59992" },
+            "Anjani Yuniarti": { smt: "6", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Editor Video", nim: "2384110028", wa: "6288296942555" },
+            "Zalfa Nabila": { smt: "2", fak: "FITK", jur: "Pendidikan Guru Madrasa Ibtidaiyah", div: "Editor Video", nim: "2481070078", wa: "6285759120697" },
+            "Nabila Ainurrahmah": { smt: "4", fak: "FITK", jur: "Tadris Bahasa Indonesia", div: "Editor Video", nim: "2481100066", wa: "6282117874268" },
+            "Masya Islamiah": { smt: "4", fak: "FITK", jur: "Tadris Bahasa Inggris", div: "Editor Video", nim: "2481030090", wa: "6285213960989" },
+            "Hanny Habibah Olansya Iyanuarinka": { smt: "6", fak: "FITK", jur: "Tadris Matematika", div: "Editor Video", nim: "2381050016", wa: "62895357410822" },
+            "Sri Wulan Apriliyanti": { smt: "6", fak: "FUA", jur: "Tasawuf Dan Psikoterapi", div: "Editor Video", nim: "2385160005", wa: "6283898112912" },
+            "Nurul Ramadhani": { smt: "4", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Editor Video", nim: "2481020072", wa: "6285786451894" },
+            "Fajar Nur Sidik": { smt: "4", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Desain Grafis", nim: "2484110049", wa: "6282119887267" },
+            "Farhan Hilmy Mubaarok": { smt: "6", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Desain Grafis", nim: "2381020039", wa: "6285863803454" },
+            "Nur Sahid": { smt: "4", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Desain Grafis", nim: "2481020059", wa: "6285860263428" },
+            "Sofiyatul Zannah": { smt: "4", fak: "FUA", jur: "Ilmu Al-Qur’An Dan Tafsir", div: "Desain Grafis", nim: "2485130003", wa: "6285659650109" },
+            "Irfan Mubarok": { smt: "4", fak: "FITK", jur: "Informatika", div: "Operator Podcast", nim: "2488010075", wa: "6283804339441" },
+            "Dadan Danu": { smt: "6", fak: "FITK", jur: "Pendidikan Bahasa Arab", div: "Operator Podcast", nim: "2381020012", wa: "6282130270591" },
+            "Syarif Abdurohman": { smt: "6", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Operator Podcast", nim: "2384110127", wa: "6281464438982" },
+            "Aminah Amna": { smt: "4", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Operator Podcast", nim: "2484110038", wa: "6281573092061" },
+            "Ziyah Nujumul Inayah": { smt: "4", fak: "FITK", jur: "Pendidikan Guru Madrasa Ibtidaiyah", div: "Operator Podcast", nim: "2481070044", wa: "6283128975681" },
+            "Daffa Luthfillah": { smt: "4", fak: "FUA", jur: "Ilmu Al-Qur'An Dan Tafsir", div: "Fotografer/Videografer", nim: "2485130001", wa: "6289513586162" },
+            "Faiz Abdur Rojib": { smt: "6", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Fotografer/Videografer", nim: "2384110065", wa: "6285722454077" },
+            "Devina Nuramalina": { smt: "6", fak: "FDKI", jur: "Bimbingan Dan Konseling Islam", div: "Fotografer/Videografer", nim: "2384130156", wa: "6281288089413" },
+            "Nisa Nurmalasari": { smt: "6", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Fotografer/Videografer", nim: "2384110089", wa: "62859113502878" },
+            "Regar Herlambang": { smt: "4", fak: "FITK", jur: "Tadris Ilmu Pengetahuan Sosial", div: "Fotografer/Videografer", nim: "2481040056", wa: "6283824015255" },
+            "Rosiana Sari": { smt: "6", fak: "FUA", jur: "Tasawuf Dan Psikoterapi", div: "Fotografer/Videografer", nim: "2385160025", wa: "6282110788902" },
+            "Tathia Putri Inasyah": { smt: "4", fak: "FEBI", jur: "Akuntansi Syariah", div: "Operator Podcast", nim: "2482130116", wa: "62895320385097" },
+            "Muslikah Anggrayni": { smt: "6", fak: "FDKI", jur: "Bimbingan Dan Konseling Islam", div: "Operator Podcast", nim: "2384130064", wa: "6288229226535" },
+            "Siti Rokhiya": { smt: "4", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Operator Podcast", nim: "2484110015", wa: "6283890093451" },
+            "Eva Sulastri": { smt: "6", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Operator Podcast", nim: "2384110098", wa: "6285880889338" },
+            "Laila Ulfatur Rahmah": { smt: "6", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Fotografer/Videografer", nim: "2384110132", wa: "6281398066380" },
+            "Abdullatif Fuadi": { smt: "6", fak: "FDKI", jur: "Komunikasi Dan Penyiaran Islam", div: "Fotografer/Videografer", nim: "2384110067", wa: "6289524003090" }
         };
 
         (function initVolunteerData() {
@@ -3794,7 +4937,6 @@ self.addEventListener('fetch', (e) => {
             const filterLaporPic = document.getElementById("filter-lapor-pic");
             const printPic = document.getElementById("print-pic");
             const filterPic = document.getElementById("filter-pic");
-            const fieldPic = document.getElementById("field-pic");
 
             // Reset opsi ke default awal
             if (filterLaporPic) {
@@ -3805,9 +4947,6 @@ self.addEventListener('fetch', (e) => {
             }
             if (filterPic) {
                 filterPic.innerHTML = '<option value="ALL">Semua PIC</option>';
-            }
-            if (fieldPic) {
-                fieldPic.innerHTML = '<option value="">-- Pilih Volunteer --</option>';
             }
             if (list) {
                 list.innerHTML = '';
@@ -3840,13 +4979,6 @@ self.addEventListener('fetch', (e) => {
                     optF.textContent = nama;
                     filterPic.appendChild(optF);
                 }
-
-                if (fieldPic) {
-                    let optField = document.createElement('option');
-                    optField.value = nama;
-                    optField.textContent = nama;
-                    fieldPic.appendChild(optField);
-                }
             });
         })();
 
@@ -3856,16 +4988,38 @@ self.addEventListener('fetch', (e) => {
                 jabatan: document.getElementById("abs-jabatan"),
                 semester: document.getElementById("abs-semester"),
                 fakultas: document.getElementById("abs-fakultas"),
-                jurusan: document.getElementById("abs-jurusan")
+                jurusan: document.getElementById("abs-jurusan"),
+                nim: document.getElementById("abs-nim"),
+                wa: document.getElementById("abs-wa")
             };
             if (dataVolunteer[inputNama]) {
                 const d = dataVolunteer[inputNama];
-                fields.jabatan.value = d.div;
-                fields.semester.value = d.smt;
-                fields.fakultas.value = d.fak;
-                fields.jurusan.value = d.jur;
+                fields.jabatan.value = d.div || "";
+                fields.semester.value = d.smt || "";
+                fields.fakultas.value = d.fak || "";
+                fields.jurusan.value = d.jur || "";
+                fields.nim.value = d.nim || "";
+
+                let waNum = String(d.wa || "");
+                if (waNum.startsWith("62")) waNum = waNum.substring(2);
+                else if (waNum.startsWith("+62")) waNum = waNum.substring(3);
+                else if (waNum.startsWith("0")) waNum = waNum.substring(1);
+                if (fields.wa) fields.wa.value = waNum;
+
+                Object.values(fields).forEach(f => {
+                    if (f) {
+                        f.readOnly = true;
+                        f.style.backgroundColor = 'var(--bg-tertiary)';
+                    }
+                });
             } else {
-                Object.values(fields).forEach(f => f.value = "");
+                Object.values(fields).forEach(f => {
+                    if (f) {
+                        f.value = "";
+                        f.readOnly = false;
+                        f.style.backgroundColor = 'var(--bg-secondary)';
+                    }
+                });
             }
         }
 
@@ -3880,7 +5034,14 @@ self.addEventListener('fetch', (e) => {
             // 1. Aktifkan Kamera Terlebih Dahulu (Agar UI lebih responsif)
             if (absStreamObj) absStreamObj.getTracks().forEach(t => t.stop());
             try {
-                absStreamObj = await navigator.mediaDevices.getUserMedia({ video: { facingMode: absIsFront ? "user" : "environment" } });
+                const isDesktop = window.innerWidth > 850;
+                const videoConstraints = {
+                    facingMode: absIsFront ? "user" : "environment",
+                    aspectRatio: isDesktop ? { ideal: 16 / 9 } : { ideal: 9 / 16 },
+                    width: isDesktop ? { ideal: 1280 } : { ideal: 720 },
+                    height: isDesktop ? { ideal: 720 } : { ideal: 1280 }
+                };
+                absStreamObj = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
                 absVideo.srcObject = absStreamObj;
                 absVideo.style.display = "block";
                 absVideo.style.transform = absIsFront ? "scaleX(-1)" : "scaleX(1)";
@@ -3889,7 +5050,11 @@ self.addEventListener('fetch', (e) => {
                 // Ini memastikan apa yang dilihat di layar (preview) sama persis dengan foto yang disimpan
                 absVideo.onloadedmetadata = () => {
                     const ratio = absVideo.videoWidth / absVideo.videoHeight;
-                    document.querySelector('.viewport-wrapper').style.aspectRatio = ratio;
+                    const wrapper = document.querySelector('.viewport-wrapper');
+                    if (wrapper) {
+                        wrapper.style.aspectRatio = ratio;
+                        wrapper.style.maxHeight = isDesktop ? '420px' : '520px';
+                    }
                 };
 
                 absOverlay.style.display = "flex";
@@ -3908,26 +5073,65 @@ self.addEventListener('fetch', (e) => {
                 return; // Berhenti jika kamera gagal
             }
 
-            // 2. Ambil Lokasi GPS di Latar Belakang
-            document.getElementById("abs-address").innerText = "📍 Sedang mencari lokasi GPS...";
-            navigator.geolocation.getCurrentPosition(async pos => {
-                absLat = pos.coords.latitude.toFixed(7); absLon = pos.coords.longitude.toFixed(7);
-                document.getElementById("abs-coords").innerText = `Lat: ${absLat} Lon: ${absLon}`;
+            // 2. Ambil Lokasi GPS di Latar Belakang (Dengan 3-Tier Fallback System)
+            document.getElementById("abs-address").innerText = "📍 Sedang mendeteksi lokasi...";
+
+            const fetchAddressFromOSM = async (lat, lon) => {
                 try {
-                    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${absLat}&lon=${absLon}`);
+                    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                     const d = await r.json();
-                    absLokasi = d.display_name ? d.display_name.split(',').slice(0, 4).join(',') : "Lokasi tidak detail";
+                    absLokasi = d.display_name ? d.display_name.split(',').slice(0, 4).join(',') : "Lokasi akurat";
                     document.getElementById("abs-address").innerText = "📍 " + absLokasi;
                 } catch (e) {
-                    absLokasi = "Gagal memuat alamat jaringan";
+                    absLokasi = `Lat: ${lat}, Lon: ${lon}`;
                     document.getElementById("abs-address").innerText = "📍 " + absLokasi;
                 }
-            }, (err) => {
-                absLat = "-"; absLon = "-"; absLokasi = "Akses GPS Ditolak / Timeout";
-                document.getElementById("abs-coords").innerText = "Lat: - Lon: -";
-                document.getElementById("abs-address").innerText = "📍 " + absLokasi;
-                showCustomDialog({ title: "Peringatan GPS", message: "Gagal mengakses lokasi (GPS). Anda tetap bisa mengambil foto absensi, namun tanpa koordinat.", confirmText: "Mengerti" });
-            }, { enableHighAccuracy: true, timeout: 10000 });
+            };
+
+            const applyCoords = (lat, lon) => {
+                absLat = Number(lat).toFixed(7);
+                absLon = Number(lon).toFixed(7);
+                document.getElementById("abs-coords").innerText = `Lat: ${absLat} Lon: ${absLon}`;
+                fetchAddressFromOSM(absLat, absLon);
+            };
+
+            const tryIpFallback = async () => {
+                try {
+                    const r = await fetch('https://ipwho.is/');
+                    const d = await r.json();
+                    if (d && d.success && d.latitude && d.longitude) {
+                        absLat = Number(d.latitude).toFixed(7);
+                        absLon = Number(d.longitude).toFixed(7);
+                        document.getElementById("abs-coords").innerText = `Lat: ${absLat} Lon: ${absLon}`;
+                        absLokasi = [d.city, d.region, d.country].filter(Boolean).join(', ');
+                        document.getElementById("abs-address").innerText = "📍 " + absLokasi + " (Perkiraan Jaringan)";
+                        return;
+                    }
+                    throw new Error("IP Geolocation failed");
+                } catch (e) {
+                    absLat = "-"; absLon = "-"; absLokasi = "⚠️ Lokasi Tidak Terdeteksi (GPS Wajib Aktif)";
+                    document.getElementById("abs-coords").innerText = "Lat: - Lon: -";
+                    document.getElementById("abs-address").innerText = "📍 " + absLokasi;
+                    showCustomDialog({ title: "Wajib Aktifkan GPS", message: "Sistem mewajibkan deteksi lokasi (GPS) untuk absensi agar posisi penugasan Anda tercatat. Mohon izinkan akses lokasi di browser/perangkat Anda.", confirmText: "Mengerti" });
+                }
+            };
+
+            if (navigator.geolocation) {
+                // Tier 1: GPS Akurasi Tinggi (Untuk HP/Perangkat dengan sensor GPS)
+                navigator.geolocation.getCurrentPosition(pos => {
+                    applyCoords(pos.coords.latitude, pos.coords.longitude);
+                }, err1 => {
+                    // Tier 2: Triangulasi Wi-Fi/Jaringan (Sangat efektif untuk Laptop/PC atau dalam ruangan)
+                    navigator.geolocation.getCurrentPosition(pos2 => {
+                        applyCoords(pos2.coords.latitude, pos2.coords.longitude);
+                    }, err2 => {
+                        // Tier 3: IP-Based Geolocation Fallback (Jika izin browser ditolak/timeout)
+                        tryIpFallback();
+                    }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 });
+                }, { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 });
+            } else {
+                tryIpFallback();
+            }
         }
 
         function toggleKamera() { absIsFront = !absIsFront; startKamera(); }
@@ -3940,44 +5144,84 @@ self.addEventListener('fetch', (e) => {
             ctx.drawImage(absVideo, 0, 0);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-            // Buat efek gradient untuk background watermark yang minimalis
-            const gradHeight = 100;
-            const grad = ctx.createLinearGradient(0, canvas.height - gradHeight, 0, canvas.height);
-            grad.addColorStop(0, "rgba(0,0,0,0)");
-            grad.addColorStop(1, "rgba(0,0,0,0.8)");
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, canvas.height - gradHeight, canvas.width, gradHeight);
+            // --- DRAW PREMIUM BRANDED VOLABS WATERMARK ---
+            const scale = Math.max(0.75, Math.min(canvas.width, canvas.height) / 550);
+            const padX = Math.round(24 * scale);
+            const bannerH = Math.round(125 * scale);
+            const bannerY = canvas.height - bannerH;
 
-            // Efek bayangan teks agar lebih mudah dibaca
-            ctx.shadowColor = "rgba(0,0,0,0.9)";
-            ctx.shadowBlur = 4;
-            ctx.shadowOffsetX = 1;
-            ctx.shadowOffsetY = 1;
+            // 1. Dark Glass Background
+            const bgGrad = ctx.createLinearGradient(0, bannerY - 30, 0, canvas.height);
+            bgGrad.addColorStop(0, "rgba(15, 23, 42, 0)");
+            bgGrad.addColorStop(0.25, "rgba(15, 23, 42, 0.8)");
+            bgGrad.addColorStop(1, "rgba(15, 23, 42, 0.95)");
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, bannerY - 30, canvas.width, bannerH + 30);
 
-            const textX = 20;
+            // 2. VOLABS Signature Gradient Accent Bar (Top edge of banner)
+            const accentGrad = ctx.createLinearGradient(0, bannerY, canvas.width, bannerY);
+            accentGrad.addColorStop(0, "#BC305F");
+            accentGrad.addColorStop(0.5, "#C03959");
+            accentGrad.addColorStop(1, "#F8A734");
+            ctx.fillStyle = accentGrad;
+            ctx.fillRect(0, bannerY, canvas.width, Math.max(3, Math.round(4 * scale)));
 
-            // Waktu & Tanggal
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "600 14px 'Plus Jakarta Sans', Arial, sans-serif";
-            ctx.fillText(new Date().toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" }).toUpperCase(), textX, canvas.height - 65);
+            // 3. Brand Badge / Pill in Top-Right of Watermark
+            const badgeText = "⚡ VOLABS PIPD • VERIFIED GEOTAG";
+            ctx.font = `700 ${Math.round(11 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
+            const badgeW = ctx.measureText(badgeText).width + Math.round(24 * scale);
+            const badgeH = Math.round(24 * scale);
+            const badgeX = canvas.width - padX - badgeW;
+            const badgeY = bannerY - Math.round(12 * scale);
 
-            // Lokasi
-            ctx.font = "400 12px 'Plus Jakarta Sans', Arial, sans-serif";
-            let locText = absLokasi.toUpperCase();
-            if (ctx.measureText(locText).width > (canvas.width - 40)) {
-                locText = locText.substring(0, 50) + "...";
+            ctx.save();
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, Math.round(12 * scale));
+            } else {
+                ctx.rect(badgeX, badgeY, badgeW, badgeH);
             }
-            ctx.fillText(locText, textX, canvas.height - 45);
+            ctx.fillStyle = accentGrad;
+            ctx.fill();
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + badgeH / 2);
+            ctx.restore();
 
-            // Koordinat Geotag & Label
-            ctx.fillStyle = "rgba(255,255,255,0.7)";
-            ctx.font = "400 10px monospace";
-            ctx.fillText(`${absLat}, ${absLon} • VOLABS PIPD`, textX, canvas.height - 25);
+            // 4. Typography - Date & Time (Top Row in Banner)
+            ctx.save();
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
 
-            // Reset shadow
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
+            const timeStr = new Date().toLocaleString("id-ID", { dateStyle: "full", timeStyle: "long" }).toUpperCase();
+            ctx.fillStyle = "#F8A734"; // Gold/Orange Accent for Time
+            ctx.font = `800 ${Math.round(15 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
+            ctx.fillText("🕒 " + timeStr, padX, bannerY + Math.round(16 * scale));
+
+            // 5. Typography - Location / Address (Middle Row)
+            let locStr = absLokasi ? absLokasi.toUpperCase() : "LOKASI TERDETEKSI";
+            ctx.fillStyle = "#ffffff";
+            ctx.font = `700 ${Math.round(14 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
+            const maxLocW = canvas.width - (padX * 2);
+            if (ctx.measureText("📍 " + locStr).width > maxLocW) {
+                while (locStr.length > 10 && ctx.measureText("📍 " + locStr + "...").width > maxLocW) {
+                    locStr = locStr.slice(0, -1);
+                }
+                locStr += "...";
+            }
+            ctx.fillText("📍 " + locStr, padX, bannerY + Math.round(44 * scale));
+
+            // 6. Typography - Coordinates & Relawan Name (Bottom Row)
+            const userName = currentUser ? currentUser.namaLengkap.toUpperCase() : "RELAWAN VOLABS";
+            const coordStr = `🌐 LAT: ${absLat || '0.000'} | LON: ${absLon || '0.000'}   •   👤 ${userName}`;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+            ctx.font = `600 ${Math.round(12 * scale)}px monospace`;
+            ctx.fillText(coordStr, padX, bannerY + Math.round(74 * scale));
+
+            ctx.restore();
 
             absFotoBase64 = canvas.toDataURL("image/jpeg", 0.7);
             absPhoto.src = absFotoBase64; absPhoto.style.display = "block"; absVideo.style.display = "none"; absOverlay.style.display = "none";
@@ -4012,6 +5256,9 @@ self.addEventListener('fetch', (e) => {
         async function submitAbsensi() {
             const btn = document.getElementById("btn-submit-absensi");
             if (!absFotoBase64) return showCustomDialog({ title: "Peringatan", message: "Mohon ambil foto bukti kehadiran!", confirmText: "Mengerti" });
+            if (!absLat || !absLon || absLat === "-" || absLon === "-") {
+                return showCustomDialog({ title: "GPS Wajib Aktif", message: "Lokasi (GPS) wajib diaktifkan sebelum mengirim absensi agar posisi penugasan Anda dapat diketahui. Mohon izinkan akses lokasi pada browser/HP Anda lalu ambil ulang foto absensi.", confirmText: "Mengerti" });
+            }
 
             const payload = {
                 action: "submit_absensi",
@@ -4075,6 +5322,10 @@ self.addEventListener('fetch', (e) => {
 
         // Inisialisasi awal
         refreshData();
+
+        // Initialize Authentication Check
+        checkAuth();
+
     </script>
 </body>
 
