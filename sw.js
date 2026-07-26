@@ -1,5 +1,5 @@
-// VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support)
-const CACHE_NAME = 'volabs-pipd-cache-v4';
+// VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
+const CACHE_NAME = 'volabs-pipd-cache-v5';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -32,7 +32,7 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-    // Lewati cache untuk API Google Apps Script dan request eksternal/dinamis
+    // 1. Lewati cache secara mutlak untuk API Google Apps Script & Request Eksternal
     if (e.request.url.includes('script.google.com') || 
         e.request.url.includes('exec') || 
         e.request.url.includes('action=') ||
@@ -40,20 +40,23 @@ self.addEventListener('fetch', (e) => {
         return;
     }
     
+    // 2. Strategi Cache-First (Stale-While-Revalidate) untuk aset statis (Memastikan Lulus Uji Offline WebAPK Oppo/ColorOS)
     e.respondWith(
-        fetch(e.request)
-            .then(response => {
-                // Simpan ke cache jika request sukses dan berstatus 200
-                if (response && response.status === 200 && response.type === 'basic') {
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
+        caches.match(e.request).then((cachedResponse) => {
+            const fetchPromise = fetch(e.request).then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+                    const responseToCache = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
                         cache.put(e.request, responseToCache);
                     });
                 }
-                return response;
-            })
-            .catch(() => {
-                return caches.match(e.request);
-            })
+                return networkResponse;
+            }).catch(() => {
+                // Abaikan error network saat update background
+            });
+            
+            // Kembalikan dari cache instan (0ms), atau tunggu dari network jika belum ada di cache
+            return cachedResponse || fetchPromise;
+        })
     );
 });
