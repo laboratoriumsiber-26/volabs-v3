@@ -95,7 +95,8 @@
         }
 
         /* Print Styles for PDF/DOC Export */
-        #print-area {
+        #print-area,
+        #print-area-jurnal {
             display: none;
         }
 
@@ -106,26 +107,41 @@
             left: 0 !important;
             z-index: -9999 !important;
             width: 210mm;
-            /* A4 Width */
             color: #000;
             background: #fff;
             padding: 1.5cm;
-            /* 1.5cm margins on all sides */
             box-sizing: border-box;
             line-height: 1.15;
-            /* Spasi 1.15 */
             font-size: 11pt;
-            /* Font 11pt */
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        #print-area-jurnal.export-active {
+            display: block !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: -9999 !important;
+            width: 210mm;
+            color: #000;
+            background: #fff;
+            padding: 2.5cm 2cm;
+            box-sizing: border-box;
+            line-height: 1.15;
+            font-size: 11pt;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
         @media print {
-            body.is-printing>*:not(.print-ancestor):not(#print-area) {
+
+            body.is-printing>*:not(.print-ancestor):not(#print-area),
+            body.is-printing-jurnal>*:not(.print-ancestor):not(#print-area-jurnal) {
                 display: none !important;
             }
 
-            .print-ancestor>*:not(.print-ancestor):not(#print-area) {
+            .print-ancestor>*:not(.print-ancestor):not(#print-area):not(#print-area-jurnal) {
                 display: none !important;
             }
 
@@ -144,7 +160,8 @@
                 display: none !important;
             }
 
-            #print-area {
+            #print-area,
+            #print-area-jurnal {
                 display: block !important;
                 position: static !important;
                 width: 100%;
@@ -156,6 +173,14 @@
                 font-size: 11pt;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+            }
+
+            body.is-printing #print-area-jurnal {
+                display: none !important;
+            }
+
+            body.is-printing-jurnal #print-area {
+                display: none !important;
             }
 
             @page {
@@ -615,7 +640,11 @@
             #btn-add-content span,
             #btn-print-report span,
             #btn-print-pelaporan span,
-            #btn-approval .btn-text {
+            #btn-approval .btn-text,
+            #btn-jurnal-meta-cfg span,
+            #btn-jurnal-pdf span,
+            #btn-jurnal-doc span,
+            #btn-add-jurnal span {
                 display: none;
             }
 
@@ -623,7 +652,11 @@
             #btn-add-content,
             #btn-print-report,
             #btn-print-pelaporan,
-            #btn-approval {
+            #btn-approval,
+            #btn-jurnal-meta-cfg,
+            #btn-jurnal-pdf,
+            #btn-jurnal-doc,
+            #btn-add-jurnal {
                 padding: 0.6rem !important;
             }
 
@@ -631,7 +664,11 @@
             #btn-add-content svg,
             #btn-print-report svg,
             #btn-print-pelaporan svg,
-            #btn-approval svg {
+            #btn-approval svg,
+            #btn-jurnal-meta-cfg svg,
+            #btn-jurnal-pdf svg,
+            #btn-jurnal-doc svg,
+            #btn-add-jurnal svg {
                 margin-right: 0 !important;
                 display: block !important;
             }
@@ -639,6 +676,52 @@
             /* Sesuaikan ukuran search bar */
             .header-search-wrapper {
                 margin: 0 0.5rem 0 0;
+            }
+
+            /* Hilangkan scroll bar di kanan dan bawah khusus tampilan HP agar indah & bersih */
+            ::-webkit-scrollbar {
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
+
+            * {
+                scrollbar-width: none !important;
+                -ms-overflow-style: none !important;
+            }
+
+            html,
+            body {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+            }
+
+            /* Perbaiki semua button filter & dropdown select ketika diakses khusus tampilan di HP */
+            .filters-group {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 0.5rem !important;
+                width: 100% !important;
+                overflow-x: visible !important;
+                padding-bottom: 0 !important;
+            }
+
+            .filter-select,
+            .form-select {
+                width: 100% !important;
+                padding: 0.55rem 0.6rem !important;
+                font-size: 0.78rem !important;
+                white-space: normal !important;
+                text-overflow: ellipsis !important;
+                overflow: hidden !important;
+                max-width: 100% !important;
+                border-radius: var(--radius-md) !important;
+            }
+
+            /* Untuk Pelaporan dan form filter ber-grid agar rapi 2 kolom di mobile */
+            .box-card div[style*="grid-template-columns"] {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 0.6rem !important;
             }
         }
 
@@ -2053,8 +2136,7 @@
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-primary); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column;">
         <div
             style="background: var(--bg-secondary); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center;">
-            <img src="logo.png" alt="VoLabs Logo"
-                style="height: 60px; object-fit: contain; margin-bottom: 20px;">
+            <img src="logo.png" alt="VoLabs Logo" style="height: 60px; object-fit: contain; margin-bottom: 20px;">
             <h2 style="margin-bottom: 10px; color: var(--text-primary);">VoLabs V.3</h2>
             <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">Sistem Manajemen & Pelaporan
                 KKN</p>
@@ -2181,13 +2263,98 @@
         </table>
     </div>
 
+    <!-- AREA PRINT JURNAL HARIAN KKN (Sembunyi secara default) -->
+    <div id="print-area-jurnal">
+        <div style="text-align: center; margin-bottom: 15px; font-family: Arial, sans-serif;">
+            <div style="font-size: 14pt; font-weight: bold; text-transform: uppercase; margin-bottom: 3px;">JURNAL
+                HARIAN PENGABDIAN KEPADA MASYARAKAT</div>
+            <div style="font-size: 11pt; font-weight: bold; margin-bottom: 3px;">Diajukan untuk Pengakuan (Rekognisi)
+                Setara KKN</div>
+            <div style="font-size: 12pt; font-weight: bold; margin-bottom: 10px;">Universitas Islam Negeri Siber Syekh
+                Nurjati Cirebon</div>
+            <div style="border-top: 3px solid #000; margin: 8px 0 2px 0;"></div>
+            <div style="border-top: 1px solid #000; margin: 0 0 15px 0;"></div>
+        </div>
+
+        <table style="width: 100%; border: none; font-size: 11pt; margin-bottom: 15px; font-family: Arial, sans-serif;">
+            <tr>
+                <td style="width: 180px; font-weight: bold; padding: 2px 0; vertical-align: top;">Nama Mahasiswa</td>
+                <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-nama"></span></td>
+                <td style="width: 180px; font-weight: bold; padding: 2px 0; vertical-align: top;">Nama Lembaga</td>
+                <td style="padding: 2px 0; vertical-align: top;">: PIPD UIN Siber Syekh Nurjati Cirebon</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">NIM</td>
+                <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-nim"></span></td>
+                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Alamat Lembaga</td>
+                <td style="padding: 2px 0; vertical-align: top;">: Jl. Perjuangan No.1, Karyamulya, Kec. Kesambi, Kota
+                    Cirebon, Jawa Barat 45135</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Program Studi/Jurusan</td>
+                <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-prodi"></span></td>
+                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Nama Pimpinan Lembaga</td>
+                <td style="padding: 2px 0; vertical-align: top;">: Heru Mudiyanto</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Periode Kegiatan</td>
+                <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-periode"></span></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+
+        <div style="font-style: italic; font-size: 10pt; margin-bottom: 15px; font-family: Arial, sans-serif;">
+            Catatan: Jurnal ini merupakan bukti autentik pelaksanaan kegiatan pengabdian kepada masyarakat. Setiap entri
+            harus diisi dengan jujur dan dapat diverifikasi.
+        </div>
+
+        <table
+            style="width: 100%; border-collapse: collapse; font-size: 11pt; margin-bottom: 20px; font-family: Arial, sans-serif;">
+            <thead>
+                <tr style="background: #f0f0f0;">
+                    <th style="border: 1px solid #000; padding: 6px; width: 35px; text-align: center;">No.</th>
+                    <th style="border: 1px solid #000; padding: 6px; width: 110px; text-align: center;">Tanggal</th>
+                    <th style="border: 1px solid #000; padding: 6px; width: 150px; text-align: center;">Jam (Mulai –
+                        Selesai)</th>
+                    <th style="border: 1px solid #000; padding: 6px; width: 80px; text-align: center;">Durasi</th>
+                    <th style="border: 1px solid #000; padding: 6px; text-align: left;">Uraian Kegiatan</th>
+                </tr>
+            </thead>
+            <tbody id="print-jurnal-tbody">
+                <!-- Rows generated here -->
+            </tbody>
+        </table>
+
+        <div style="font-size: 11pt; margin-bottom: 30px; font-family: Arial, sans-serif;">
+            Dengan ini menyatakan bahwa jurnal kegiatan di atas adalah benar dan dapat dipertanggungjawabkan.
+        </div>
+
+        <table
+            style="width: 100%; border: none; font-size: 11pt; font-family: Arial, sans-serif; page-break-inside: avoid;">
+            <tr>
+                <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
+                    <div>Mengetahui,</div>
+                    <div style="font-weight: bold;">Pimpinan Lembaga/Instansi Mitra,</div>
+                    <div style="height: 70px;"></div>
+                    <div style="font-weight: bold; text-decoration: underline;">Heru Mudiyanto</div>
+                </td>
+                <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
+                    <div>Cirebon, <span id="print-jurnal-tgl-ttd"></span></div>
+                    <div style="font-weight: bold;">Mahasiswa,</div>
+                    <div style="height: 70px;"></div>
+                    <div style="font-weight: bold; text-decoration: underline;" id="print-jurnal-nama-ttd"></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <!-- Top Navigation Bar -->
     <header class="top-header">
         <div class="brand-area">
             <div class="brand-logo" title="Logo VoLABS PIPD">
                 <!-- Logo VoLABS -->
-                <img src="logo.png" alt="VoLABS PIPD"
-                    style="width:100%; height:100%; object-fit:contain;">
+                <img src="logo.png" alt="VoLABS PIPD" style="width:100%; height:100%; object-fit:contain;">
             </div>
             <div class="brand-text">
                 <h1>VoLABS PIPD Content Plan</h1>
@@ -2869,6 +3036,123 @@
             </div>
         </section>
 
+        <!-- SECTION JURNAL HARIAN KKN -->
+        <section id="view-jurnal-kkn" class="view-section">
+            <div
+                style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem; color: var(--text-main); font-weight: 700;">Jurnal Harian
+                        Pengabdian (Rekognisi KKN)</h3>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        <span id="ui-jurnal-nama">-</span> | NIM: <span id="ui-jurnal-nim">-</span> | Prodi: <span
+                            id="ui-jurnal-prodi">-</span> | Periode: <span id="ui-jurnal-periode">-</span>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn-secondary" id="btn-jurnal-meta-cfg" onclick="window.openJurnalMetaModal()"
+                        style="color: var(--primary); border-color: var(--primary);" title="Atur Identitas dan Periode">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px; height:18px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>Atur Identitas & Periode</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controls & Filter Bar -->
+            <div class="control-bar">
+                <div class="filters-group" style="flex: 1;">
+                    <select id="filter-jurnal-jam" class="filter-select" onchange="window.renderJurnalUi()">
+                        <option value="ALL">Semua Jam Shift</option>
+                        <option value="08.00 - 11.00">08.00 - 11.00</option>
+                        <option value="13.00 - 16.00">13.00 - 16.00</option>
+                        <option value="08.00 - 11.00 & 13.00 - 16.00">08.00 - 11.00 & 13.00 - 16.00 (Full Day)</option>
+                    </select>
+
+                    <select id="filter-jurnal-durasi" class="filter-select" onchange="window.renderJurnalUi()">
+                        <option value="ALL">Semua Durasi</option>
+                        <option value="1 Jam">1 Jam</option>
+                        <option value="2 Jam">2 Jam</option>
+                        <option value="3 Jam">3 Jam</option>
+                        <option value="4 Jam">4 Jam</option>
+                        <option value="5 Jam">5 Jam</option>
+                        <option value="6 Jam">6 Jam</option>
+                        <option value="7 Jam">7 Jam</option>
+                        <option value="8 Jam">8 Jam</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                    <button class="btn-secondary" onclick="window.printJurnalKkn('pdf')" id="btn-jurnal-pdf"
+                        style="color: var(--primary); border-color: var(--primary);" title="Cetak Surat Jurnal ke PDF">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px; height:18px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                            </path>
+                        </svg>
+                        <span>Cetak PDF</span>
+                    </button>
+                    <button class="btn-secondary" onclick="window.printJurnalKkn('doc')" id="btn-jurnal-doc"
+                        style="color: var(--text-main); border-color: var(--border-color);"
+                        title="Unduh Dokumen Word (.doc)">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px; height:18px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        <span>Unduh DOC</span>
+                    </button>
+                    <button class="btn-primary" id="btn-add-jurnal" onclick="window.openJurnalItemModal(-1)">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span>Tambah Kegiatan</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- View Switcher (Cards vs Table) -->
+            <div class="view-switcher-bar">
+                <span id="jurnal-count-label"
+                    style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Menampilkan 0
+                    kegiatan</span>
+                <div class="view-toggle-btns">
+                    <button class="toggle-btn active" id="btn-jurnal-view-cards"
+                        onclick="window.setJurnalViewMode('cards')">Kartu (Mobile)</button>
+                    <button class="toggle-btn" id="btn-jurnal-view-table"
+                        onclick="window.setJurnalViewMode('table')">Tabel (Desktop)</button>
+                </div>
+            </div>
+
+            <!-- Container Tampilan Kartu -->
+            <div id="jurnal-cards-view" class="cards-container">
+                <!-- Cards injected dynamically -->
+            </div>
+
+            <!-- Container Tampilan Tabel -->
+            <div id="jurnal-table-view" class="table-wrapper" style="display: none;">
+                <table class="content-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px; text-align: center;">No</th>
+                            <th style="width: 140px;">Tanggal</th>
+                            <th style="width: 180px;">Jam (Mulai - Selesai)</th>
+                            <th style="width: 100px;">Durasi</th>
+                            <th>Uraian Kegiatan Pengabdian</th>
+                            <th style="width: 160px;">Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jurnal-table-body">
+                        <!-- Table rows injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
     </main>
 
     <!-- Bottom Navigation Bar for Mobile -->
@@ -2914,6 +3198,14 @@
                     d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
             <span>Absensi</span>
+        </div>
+        <div class="nav-item" data-view="jurnal-kkn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                </path>
+            </svg>
+            <span>Jurnal KKN</span>
         </div>
         <div class="sidebar-user-profile" style="display: none;">
             <div style="display: flex; flex-direction: column; overflow: hidden; margin-right: 8px;">
@@ -3217,13 +3509,109 @@
         </div>
     </div>
 
+    <!-- ==================== MODAL TAMBAH/EDIT JURNAL KEGIATAN ==================== -->
+    <div id="modal-jurnal-item" class="modal-overlay">
+        <div class="modal-box" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-jurnal-title">Tambah Kegiatan Jurnal</h3>
+                <button class="btn-close" onclick="window.closeJurnalItemModal()" title="Tutup Modal">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form onsubmit="event.preventDefault(); window.saveJurnalItemModal();"
+                style="display: flex; flex-direction: column; flex: 1 1 auto; overflow: hidden;">
+                <div class="modal-body">
+                    <input type="hidden" id="edit-jurnal-index" value="-1">
+                    <div class="form-group">
+                        <label class="form-label" for="input-jurnal-tanggal">Tanggal Kegiatan *</label>
+                        <input type="date" id="input-jurnal-tanggal" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="input-jurnal-jam">Jam Shift (Mulai – Selesai) *</label>
+                        <select id="input-jurnal-jam" class="form-select">
+                            <option value="08.00 - 11.00">08.00 - 11.00</option>
+                            <option value="13.00 - 16.00">13.00 - 16.00</option>
+                            <option value="08.00 - 11.00 & 13.00 - 16.00">08.00 - 11.00 & 13.00 - 16.00 (Full Day)
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="input-jurnal-durasi">Durasi Pelaksanaan *</label>
+                        <select id="input-jurnal-durasi" class="form-select">
+                            <option value="1 Jam">1 Jam</option>
+                            <option value="2 Jam">2 Jam</option>
+                            <option value="3 Jam">3 Jam</option>
+                            <option value="4 Jam">4 Jam</option>
+                            <option value="5 Jam">5 Jam</option>
+                            <option value="6 Jam">6 Jam</option>
+                            <option value="7 Jam">7 Jam</option>
+                            <option value="8 Jam">8 Jam</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="input-jurnal-uraian">Uraian / Deskripsi Kegiatan *</label>
+                        <textarea id="input-jurnal-uraian" class="form-input" rows="4"
+                            placeholder="Tuliskan secara lengkap detail aktivitas pengabdian kepada masyarakat yang dilakukan..."
+                            required style="resize: vertical;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="window.closeJurnalItemModal()">Batal</button>
+                    <button type="submit" class="btn-primary">Simpan Kegiatan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL ATUR IDENTITAS & PERIODE JURNAL ==================== -->
+    <div id="modal-jurnal-meta" class="modal-overlay">
+        <div class="modal-box" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Atur Identitas & Periode Rekognisi</h3>
+                <button class="btn-close" onclick="window.closeJurnalMetaModal()" title="Tutup Modal">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form onsubmit="event.preventDefault(); window.saveJurnalMetaModal();"
+                style="display: flex; flex-direction: column; flex: 1 1 auto; overflow: hidden;">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="meta-jurnal-nama">Nama Mahasiswa</label>
+                        <input type="text" id="meta-jurnal-nama" class="form-input" placeholder="Nama lengkap">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="meta-jurnal-nim">NIM</label>
+                        <input type="text" id="meta-jurnal-nim" class="form-input" placeholder="Nomor Induk Mahasiswa">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="meta-jurnal-prodi">Program Studi / Jurusan</label>
+                        <input type="text" id="meta-jurnal-prodi" class="form-input" placeholder="Contoh: KPI / FDKI">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="meta-jurnal-periode">Periode Kegiatan</label>
+                        <input type="text" id="meta-jurnal-periode" class="form-input"
+                            placeholder="Contoh: 1 Juli s.d. 31 Agustus 2026">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="window.closeJurnalMetaModal()">Batal</button>
+                    <button type="submit" class="btn-primary">Simpan Identitas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- SINGLE PAGE APPLICATION JAVASCRIPT -->
     <script>
         // =========================================================================================
         // KONFIGURASI URL WEB APP GOOGLE APPS SCRIPT
         // Tempelkan Web App URL hasil deploy berkas Code.gs Anda ke dalam tanda kutip di bawah:
         // =========================================================================================
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOBT8yWCjmp8OFGhBmcSAE2F8jj6WefTt9cBi32_L-JAfp1BLZGjDc4bHmdEFxOdrc/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyvds1eAjZKuumboaps36ZIxxZwWWI52jXaPfoGWZ1YbTr-PqqV6re7rF96fToRBf8L/exec";
 
         // Registrasi Progressive Web App (PWA) dengan Dukungan Standalone WebAPK (Tanpa Logo Browser Shortcut)
         if ('serviceWorker' in navigator) {
@@ -3479,7 +3867,8 @@
             'content-plan': document.getElementById('view-content-plan'),
             kanban: document.getElementById('view-kanban'),
             pelaporan: document.getElementById('view-pelaporan'),
-            absensi: document.getElementById('view-absensi')
+            absensi: document.getElementById('view-absensi'),
+            'jurnal-kkn': document.getElementById('view-jurnal-kkn')
         };
 
         // Render efek skeleton saat memuat data
@@ -3587,6 +3976,10 @@
                 if (el.getAttribute('data-view') === viewName) el.classList.add('active');
                 else el.classList.remove('active');
             });
+
+            if (viewName === 'jurnal-kkn' && typeof renderJurnalKkn === 'function') {
+                renderJurnalKkn();
+            }
 
             // Matikan kamera jika pindah dari tab absensi
             if (viewName !== 'absensi' && typeof stopKamera === 'function') {
@@ -4761,6 +5154,9 @@
                     // Memicu trigger pengisian kolom lain (divisi, smt, dll)
                     handleAbsensiNama();
                 }
+                if (typeof initJurnalMetaFromUser === 'function') {
+                    initJurnalMetaFromUser();
+                }
             }
 
             // Sembunyikan menu berdasarkan Role
@@ -5320,6 +5716,444 @@
                 }
             } catch (e) { c.innerHTML = `<div style="text-align:center; padding: 30px; color: #ef4444;">Gagal memuat data.</div>`; }
         }
+
+        // === JURNAL HARIAN PENGABDIAN (REKOGNISI KKN) ===
+        let currentJurnalList = [];
+        let currentJurnalViewMode = 'cards';
+
+        function getJurnalStorageKey() {
+            const uName = currentUser ? currentUser.namaLengkap : 'default';
+            return `volabs_jurnal_kkn_list_${uName}`;
+        }
+
+        function getJurnalMetaKey() {
+            const uName = currentUser ? currentUser.namaLengkap : 'default';
+            return `volabs_jurnal_kkn_meta_${uName}`;
+        }
+
+        function formatTanggalIndo(dateStr) {
+            if (!dateStr) return "-";
+            let dObj;
+            if (typeof dateStr === 'string') {
+                const cleanStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+                const parts = cleanStr.split('-');
+                if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+                    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                    const mIdx = parseInt(parts[1], 10) - 1;
+                    return `${parseInt(parts[2], 10)} ${months[mIdx] || parts[1]} ${parts[0]}`;
+                }
+                dObj = new Date(dateStr);
+            } else if (dateStr instanceof Date) {
+                dObj = dateStr;
+            }
+            if (dObj && !isNaN(dObj.getTime())) {
+                const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                return `${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
+            }
+            return String(dateStr);
+        }
+
+        function initJurnalMetaFromUser() {
+            if (!currentUser) return;
+            const metaStr = localStorage.getItem(getJurnalMetaKey());
+            let meta = metaStr ? JSON.parse(metaStr) : null;
+            const volData = dataVolunteer[currentUser.namaLengkap] || {};
+
+            if (!meta || !meta.nama) {
+                meta = {
+                    nama: currentUser.namaLengkap,
+                    nim: volData.nim || currentUser.nim || '',
+                    prodi: volData.jur || '',
+                    periode: `1 Juli s.d. 31 Agustus 2026`
+                };
+                localStorage.setItem(getJurnalMetaKey(), JSON.stringify(meta));
+            }
+
+            const elUiNama = document.getElementById('ui-jurnal-nama');
+            const elUiNim = document.getElementById('ui-jurnal-nim');
+            const elUiProdi = document.getElementById('ui-jurnal-prodi');
+            const elUiPeriode = document.getElementById('ui-jurnal-periode');
+            if (elUiNama) elUiNama.textContent = meta.nama || currentUser.namaLengkap;
+            if (elUiNim) elUiNim.textContent = meta.nim || volData.nim || '-';
+            if (elUiProdi) elUiProdi.textContent = meta.prodi || volData.jur || '-';
+            if (elUiPeriode) elUiPeriode.textContent = meta.periode || '-';
+
+            loadJurnalData();
+        }
+
+        async function loadJurnalData() {
+            // Hapus cache lokal lama agar 100% tersinkronisasi live dengan backend serverless
+            localStorage.removeItem(getJurnalStorageKey());
+
+            // Fetch live dari Google Sheets di background (auto-sync per user)
+            if (api && api.isConfigured() && currentUser) {
+                try {
+                    const sheetName = `Jurnal - ${currentUser.namaLengkap}`;
+                    const url = `${api.apiUrl}?action=read_jurnal&sheetName=${encodeURIComponent(sheetName)}&t=${new Date().getTime()}`;
+                    const response = await fetch(url, { cache: "no-store" });
+                    const result = await response.json();
+                    if (result && result.status === "success" && Array.isArray(result.data)) {
+                        currentJurnalList = result.data;
+                        renderJurnalUi();
+                    }
+                } catch (err) {
+                    console.log("Offline atau gagal sync load Jurnal dari server:", err);
+                }
+            } else {
+                currentJurnalList = [];
+                renderJurnalUi();
+            }
+        }
+
+        function saveJurnalData() {
+            // Hapus cache lokal agar tidak pernah menyimpan list kegiatan di localStorage
+            localStorage.removeItem(getJurnalStorageKey());
+
+            // Kirim sinkronisasi langsung ke Google Sheets di backend
+            if (api && api.isConfigured() && currentUser) {
+                const metaStr = localStorage.getItem(getJurnalMetaKey());
+                const meta = metaStr ? JSON.parse(metaStr) : {
+                    nama: currentUser.namaLengkap,
+                    nim: currentUser.nim || '',
+                    prodi: '',
+                    periode: '1 Juli s.d. 31 Agustus 2026'
+                };
+                const payload = {
+                    action: "sync_jurnal",
+                    sheetName: `Jurnal - ${currentUser.namaLengkap}`,
+                    list: currentJurnalList,
+                    meta: meta
+                };
+                api._sendPost(payload).catch(err => console.log("Gagal sync jurnal ke server:", err));
+            }
+        }
+
+        function setJurnalViewMode(mode) {
+            currentJurnalViewMode = mode;
+            const btnCards = document.getElementById('btn-jurnal-view-cards');
+            const btnTable = document.getElementById('btn-jurnal-view-table');
+            const cardsView = document.getElementById('jurnal-cards-view');
+            const tableView = document.getElementById('jurnal-table-view');
+
+            if (mode === 'cards') {
+                if (btnCards) btnCards.classList.add('active');
+                if (btnTable) btnTable.classList.remove('active');
+                if (cardsView) cardsView.style.display = 'grid';
+                if (tableView) tableView.style.display = 'none';
+            } else {
+                if (btnCards) btnCards.classList.remove('active');
+                if (btnTable) btnTable.classList.add('active');
+                if (cardsView) cardsView.style.display = 'none';
+                if (tableView) tableView.style.display = 'block';
+            }
+        }
+
+        function renderJurnalUi() {
+            const filterJamEl = document.getElementById('filter-jurnal-jam');
+            const filterDurasiEl = document.getElementById('filter-jurnal-durasi');
+            const filterJam = filterJamEl ? filterJamEl.value : 'ALL';
+            const filterDurasi = filterDurasiEl ? filterDurasiEl.value : 'ALL';
+
+            const filtered = currentJurnalList.filter(item => {
+                const matchJam = (filterJam === 'ALL' || item.jam === filterJam);
+                const matchDurasi = (filterDurasi === 'ALL' || item.durasi === filterDurasi);
+                return matchJam && matchDurasi;
+            });
+
+            const labelCount = document.getElementById('jurnal-count-label');
+            if (labelCount) {
+                labelCount.textContent = `Menampilkan ${filtered.length} dari ${currentJurnalList.length} kegiatan`;
+            }
+
+            // Render Cards View (Disamakan strukturnya dengan kartu Rencana Konten)
+            const cardsContainer = document.getElementById('jurnal-cards-view');
+            if (cardsContainer) {
+                if (filtered.length === 0) {
+                    cardsContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted); background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">Belum ada kegiatan jurnal yang sesuai. Klik tombol <b>"+ Tambah Kegiatan"</b> di atas.</div>`;
+                } else {
+                    cardsContainer.innerHTML = filtered.map(item => {
+                        const origIdx = currentJurnalList.indexOf(item);
+                        return `
+                        <div class="content-card">
+                          <div class="card-top" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                            <span class="card-date" style="font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">${formatTanggalIndo(item.tanggal)}</span>
+                            <span class="status-badge status-ready" style="font-size: 0.78rem;">${item.jam || '-'}</span>
+                          </div>
+                          <h4 class="card-title" style="margin-bottom: 0.8rem; font-weight: 500; font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">${item.uraian || '-'}</h4>
+                          <div class="card-footer" style="justify-content: flex-end;">
+                            <div class="card-actions">
+                              <button class="btn-card-action btn-edit-action" onclick="window.openJurnalItemModal(${origIdx})" title="Edit Kegiatan">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                <span>Edit</span>
+                              </button>
+                              <button class="btn-card-action btn-del-action" onclick="window.deleteJurnalRow(${origIdx})" title="Hapus Kegiatan">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <span>Hapus</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        `;
+                    }).join("");
+                }
+            }
+
+            // Render Table View (Disamakan strukturnya dengan tabel Rencana Konten)
+            const tableBody = document.getElementById('jurnal-table-body');
+            if (tableBody) {
+                if (filtered.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--text-muted); font-style: italic;">Belum ada kegiatan yang sesuai filter.</td></tr>`;
+                } else {
+                    tableBody.innerHTML = filtered.map((item, idx) => {
+                        const origIdx = currentJurnalList.indexOf(item);
+                        return `
+                        <tr>
+                            <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+                            <td style="white-space: nowrap; font-weight: 600;">${formatTanggalIndo(item.tanggal)}</td>
+                            <td style="white-space: nowrap;"><span class="status-badge status-ready">${item.jam}</span></td>
+                            <td style="white-space: nowrap;"><span class="badge">${item.durasi}</span></td>
+                            <td style="white-space: pre-wrap; min-width: 220px; line-height: 1.4;">${item.uraian || '-'}</td>
+                            <td>
+                                <div class="card-actions" style="justify-content: center;">
+                                    <button class="btn-card-action btn-edit-action" onclick="window.openJurnalItemModal(${origIdx})" title="Edit Kegiatan">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        <span>Edit</span>
+                                    </button>
+                                    <button class="btn-card-action btn-del-action" onclick="window.deleteJurnalRow(${origIdx})" title="Hapus Kegiatan">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        <span>Hapus</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        `;
+                    }).join("");
+                }
+            }
+        }
+
+        function renderJurnalKkn() {
+            initJurnalMetaFromUser();
+            renderJurnalUi();
+        }
+
+        function openJurnalItemModal(idx = -1) {
+            document.getElementById('edit-jurnal-index').value = idx;
+            const titleEl = document.getElementById('modal-jurnal-title');
+            if (idx >= 0 && currentJurnalList[idx]) {
+                const item = currentJurnalList[idx];
+                if (titleEl) titleEl.textContent = "Edit Kegiatan Jurnal";
+                document.getElementById('input-jurnal-tanggal').value = item.tanggal || '';
+                document.getElementById('input-jurnal-jam').value = item.jam || '08.00 - 11.00';
+                document.getElementById('input-jurnal-durasi').value = item.durasi || '3 Jam';
+                document.getElementById('input-jurnal-uraian').value = item.uraian || '';
+            } else {
+                if (titleEl) titleEl.textContent = "Tambah Kegiatan Jurnal";
+                const now = new Date();
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                document.getElementById('input-jurnal-tanggal').value = `${yyyy}-${mm}-${dd}`;
+                document.getElementById('input-jurnal-jam').value = '08.00 - 11.00';
+                document.getElementById('input-jurnal-durasi').value = '3 Jam';
+                document.getElementById('input-jurnal-uraian').value = '';
+            }
+            document.getElementById('modal-jurnal-item').classList.add('active');
+        }
+
+        function closeJurnalItemModal() {
+            document.getElementById('modal-jurnal-item').classList.remove('active');
+        }
+
+        function saveJurnalItemModal() {
+            const idx = parseInt(document.getElementById('edit-jurnal-index').value, 10);
+            const tgl = document.getElementById('input-jurnal-tanggal').value;
+            const jam = document.getElementById('input-jurnal-jam').value;
+            const durasi = document.getElementById('input-jurnal-durasi').value;
+            const uraian = document.getElementById('input-jurnal-uraian').value.trim();
+
+            if (!tgl || !uraian) {
+                showCustomDialog({ title: "Peringatan", message: "Tanggal dan Uraian Kegiatan wajib diisi!", confirmText: "Mengerti" });
+                return;
+            }
+
+            if (idx >= 0 && currentJurnalList[idx]) {
+                currentJurnalList[idx] = { tanggal: tgl, jam, durasi, uraian };
+            } else {
+                currentJurnalList.push({ tanggal: tgl, jam, durasi, uraian });
+            }
+
+            currentJurnalList.sort((a, b) => (a.tanggal || "").localeCompare(b.tanggal || ""));
+            saveJurnalData();
+            closeJurnalItemModal();
+            renderJurnalUi();
+            showCustomDialog({ title: "Berhasil", message: "Kegiatan jurnal berhasil disimpan!", confirmText: "Tutup" });
+        }
+
+        function openJurnalMetaModal() {
+            const metaStr = localStorage.getItem(getJurnalMetaKey());
+            const meta = metaStr ? JSON.parse(metaStr) : {};
+            const volData = (currentUser && dataVolunteer[currentUser.namaLengkap]) || {};
+
+            document.getElementById('meta-jurnal-nama').value = meta.nama || (currentUser ? currentUser.namaLengkap : '');
+            document.getElementById('meta-jurnal-nim').value = meta.nim || volData.nim || (currentUser ? currentUser.nim : '') || '';
+            document.getElementById('meta-jurnal-prodi').value = meta.prodi || volData.jur || '';
+            document.getElementById('meta-jurnal-periode').value = meta.periode || '1 Juli s.d. 31 Agustus 2026';
+
+            document.getElementById('modal-jurnal-meta').classList.add('active');
+        }
+
+        function closeJurnalMetaModal() {
+            document.getElementById('modal-jurnal-meta').classList.remove('active');
+        }
+
+        function saveJurnalMetaModal() {
+            const meta = {
+                nama: document.getElementById('meta-jurnal-nama').value.trim(),
+                nim: document.getElementById('meta-jurnal-nim').value.trim(),
+                prodi: document.getElementById('meta-jurnal-prodi').value.trim(),
+                periode: document.getElementById('meta-jurnal-periode').value.trim()
+            };
+            localStorage.setItem(getJurnalMetaKey(), JSON.stringify(meta));
+            closeJurnalMetaModal();
+            initJurnalMetaFromUser();
+            saveJurnalData();
+            showCustomDialog({ title: "Berhasil", message: "Identitas dan periode jurnal berhasil diperbarui!", confirmText: "Tutup" });
+        }
+
+        async function deleteJurnalRow(idx) {
+            const confirmed = await showCustomDialog({
+                title: "Hapus Kegiatan",
+                message: "Apakah Anda yakin ingin menghapus baris kegiatan ini dari jurnal?",
+                confirmText: "Hapus",
+                confirmColor: "#ef4444"
+            });
+            if (confirmed) {
+                currentJurnalList.splice(idx, 1);
+                saveJurnalData();
+                renderJurnalUi();
+            }
+        }
+
+
+        function syncJurnalPrintView() {
+            const metaStr = localStorage.getItem(getJurnalMetaKey());
+            const meta = metaStr ? JSON.parse(metaStr) : {};
+            const volData = (currentUser && dataVolunteer[currentUser.namaLengkap]) || {};
+
+            const nama = meta.nama || (currentUser ? currentUser.namaLengkap : '-');
+            const nim = meta.nim || volData.nim || '-';
+            const prodi = meta.prodi || volData.jur || '-';
+            const periode = meta.periode || '1 Juli s.d. 31 Agustus 2026';
+
+            document.getElementById('print-jurnal-nama').textContent = nama;
+            document.getElementById('print-jurnal-nim').textContent = nim;
+            document.getElementById('print-jurnal-prodi').textContent = prodi;
+            document.getElementById('print-jurnal-periode').textContent = periode;
+
+            document.getElementById('print-jurnal-nama-ttd').textContent = `(${nama})`;
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            document.getElementById('print-jurnal-tgl-ttd').textContent = formatTanggalIndo(`${yyyy}-${mm}-${dd}`);
+
+            const tbodyPrint = document.getElementById('print-jurnal-tbody');
+            if (!currentJurnalList || currentJurnalList.length === 0) {
+                tbodyPrint.innerHTML = `<tr><td colspan="5" style="border: 1px solid #000; padding: 15px; text-align: center; font-style: italic;">Belum ada entri jurnal kegiatan.</td></tr>`;
+            } else {
+                tbodyPrint.innerHTML = currentJurnalList.map((item, idx) => `
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: center; vertical-align: top;">${idx + 1}</td>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: center; vertical-align: top;">${formatTanggalIndo(item.tanggal) || item.tanggal || '-'}</td>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: center; vertical-align: top;">${item.jam || '-'}</td>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: center; vertical-align: top;">${item.durasi || '-'}</td>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: left; vertical-align: top; white-space: pre-wrap;">${item.uraian || '-'}</td>
+                    </tr>
+                `).join("");
+            }
+        }
+
+        function printJurnalKkn(type) {
+            syncJurnalPrintView();
+            const printAreaJurnal = document.getElementById('print-area-jurnal');
+            const btnDoc = document.getElementById('btn-jurnal-doc');
+            const originalDocText = btnDoc ? btnDoc.innerHTML : 'Unduh DOC';
+
+            if (type === 'doc') {
+                printAreaJurnal.classList.add('export-active');
+                if (btnDoc) btnDoc.innerHTML = 'Menyiapkan DOC...';
+
+                setTimeout(() => {
+                    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Jurnal Harian Pengabdian</title></" + "head><" + "body>";
+                    const footer = "</" + "body></" + "html>";
+                    const styles = "<style>#print-area-jurnal { font-family: Arial, sans-serif; font-size: 11pt; color: #000; line-height: 1.15; padding: 2.5cm 2cm; } table { border-collapse: collapse; width: 100%; font-size: 11pt; } td, th { padding: 6px 8px; border: 1px solid #000; } </style>";
+                    const htmlContent = header + styles + "<div id='print-area-jurnal'>" + printAreaJurnal.innerHTML + "</div>" + footer;
+
+                    const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+                    const url = URL.createObjectURL(blob);
+                    const downloadLink = document.createElement("a");
+                    downloadLink.href = url;
+                    const metaStr = localStorage.getItem(getJurnalMetaKey());
+                    const meta = metaStr ? JSON.parse(metaStr) : {};
+                    const cleanNama = (meta.nama || (currentUser ? currentUser.namaLengkap : 'Mahasiswa')).replace(/ /g, '_');
+                    downloadLink.download = `Jurnal_Pengabdian_${cleanNama}.doc`;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    URL.revokeObjectURL(url);
+
+                    printAreaJurnal.classList.remove('export-active');
+                    if (btnDoc) btnDoc.innerHTML = originalDocText;
+                }, 500);
+            } else if (type === 'pdf') {
+                document.body.classList.add('is-printing-jurnal');
+                let pageMarginStyle = document.getElementById('print-page-margin-override');
+                if (!pageMarginStyle) {
+                    pageMarginStyle = document.createElement('style');
+                    pageMarginStyle.id = 'print-page-margin-override';
+                    document.head.appendChild(pageMarginStyle);
+                }
+                pageMarginStyle.innerHTML = `@media print { @page { size: A4; margin: 2.5cm 2cm 2.5cm 2cm !important; } }`;
+
+                let parent = printAreaJurnal.parentElement;
+                while (parent && parent !== document.body && parent !== document.documentElement) {
+                    parent.classList.add('print-ancestor');
+                    parent = parent.parentElement;
+                }
+
+                setTimeout(() => {
+                    window.print();
+                    document.body.classList.remove('is-printing-jurnal');
+                    if (pageMarginStyle) pageMarginStyle.innerHTML = '';
+                    let p = printAreaJurnal.parentElement;
+                    while (p && p !== document.body && p !== document.documentElement) {
+                        p.classList.remove('print-ancestor');
+                        p = p.parentElement;
+                    }
+                }, 300);
+            }
+        }
+
+        // Global exports for inline HTML handlers
+        window.getJurnalStorageKey = getJurnalStorageKey;
+        window.getJurnalMetaKey = getJurnalMetaKey;
+        window.formatTanggalIndo = formatTanggalIndo;
+        window.initJurnalMetaFromUser = initJurnalMetaFromUser;
+        window.loadJurnalData = loadJurnalData;
+        window.saveJurnalData = saveJurnalData;
+        window.setJurnalViewMode = setJurnalViewMode;
+        window.renderJurnalUi = renderJurnalUi;
+        window.renderJurnalKkn = renderJurnalKkn;
+        window.openJurnalItemModal = openJurnalItemModal;
+        window.closeJurnalItemModal = closeJurnalItemModal;
+        window.saveJurnalItemModal = saveJurnalItemModal;
+        window.openJurnalMetaModal = openJurnalMetaModal;
+        window.closeJurnalMetaModal = closeJurnalMetaModal;
+        window.saveJurnalMetaModal = saveJurnalMetaModal;
+        window.deleteJurnalRow = deleteJurnalRow;
+        window.syncJurnalPrintView = syncJurnalPrintView;
+        window.printJurnalKkn = printJurnalKkn;
 
         // Inisialisasi awal
         refreshData();
