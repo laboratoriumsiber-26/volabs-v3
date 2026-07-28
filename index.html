@@ -636,6 +636,10 @@
                 margin-bottom: 0 !important;
             }
 
+            .bottom-nav .nav-item.hide-on-mobile {
+                display: none !important;
+            }
+
             #btn-change-sheet span,
             #btn-add-content span,
             #btn-print-report span,
@@ -1515,6 +1519,88 @@
             flex-direction: column;
             gap: 0.85rem;
             min-height: 200px;
+        }
+
+        /* Gojek / Shopee Style Circular Quick Service Menu (Khusus HP) */
+        .mobile-service-menu {
+            display: none;
+        }
+
+        @media (max-width: 850px) {
+            .mobile-service-menu {
+                display: block !important;
+                background: var(--bg-card);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-lg);
+                padding: 1.25rem 1rem 1rem 1rem;
+                margin-bottom: 1.5rem;
+                box-shadow: var(--shadow-sm);
+            }
+
+            .mobile-service-title {
+                font-size: 0.85rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                letter-spacing: 0.3px;
+            }
+
+            .mobile-service-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.75rem;
+                text-align: center;
+            }
+
+            .mobile-service-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+                cursor: pointer;
+                transition: transform 0.2s ease;
+                padding: 0.25rem 0;
+            }
+
+            .mobile-service-item:active {
+                transform: scale(0.92);
+            }
+
+            .mobile-service-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--volabs-gradient);
+                color: #ffffff;
+                box-shadow: 0 4px 12px rgba(188, 48, 95, 0.3);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .mobile-service-item:hover .mobile-service-icon {
+                transform: translateY(-2px);
+                background: var(--volabs-gradient-hover);
+                box-shadow: 0 6px 16px rgba(248, 167, 52, 0.4);
+            }
+
+            .mobile-service-icon svg {
+                width: 24px;
+                height: 24px;
+                stroke-width: 2;
+            }
+
+            .mobile-service-label {
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: var(--text-secondary);
+                line-height: 1.2;
+                max-width: 65px;
+            }
         }
 
         /* Bottom Navigation Bar for Mobile */
@@ -2469,6 +2555,40 @@
 
         <!-- SECTION 1: DASHBOARD OVERVIEW -->
         <section id="view-dashboard" class="view-section active">
+            <!-- Mobile Gojek/Shopee Style Service Menu (Khusus HP) -->
+            <div class="mobile-service-menu">
+                <div class="mobile-service-title">
+                    <span>Menu Layanan</span>
+                    <span style="font-size: 0.68rem; font-weight: 600; color: var(--primary); text-transform: none;">VoLABS PIPD</span>
+                </div>
+                <div class="mobile-service-grid">
+                    <div class="mobile-service-item" onclick="switchView('kanban')">
+                        <div class="mobile-service-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        </div>
+                        <span class="mobile-service-label">Alur Produksi</span>
+                    </div>
+                    <div class="mobile-service-item" onclick="switchView('pelaporan')">
+                        <div class="mobile-service-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m4 2v-4m4 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <span class="mobile-service-label">Pelaporan</span>
+                    </div>
+                    <div class="mobile-service-item" onclick="switchView('content-plan')">
+                        <div class="mobile-service-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        </div>
+                        <span class="mobile-service-label">Konten</span>
+                    </div>
+                    <div class="mobile-service-item" onclick="switchView('jurnal-kkn')">
+                        <div class="mobile-service-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <span class="mobile-service-label">Jurnal KKN</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- 4 Stat Cards -->
             <div class="dashboard-grid">
                 <div class="stat-card">
@@ -3173,7 +3293,7 @@
             </svg>
             <span>Konten</span>
         </div>
-        <div class="nav-item" data-view="kanban">
+        <div class="nav-item hide-on-mobile" data-view="kanban">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
@@ -3181,7 +3301,7 @@
             </svg>
             <span>Alur Produksi</span>
         </div>
-        <div class="nav-item" data-view="pelaporan">
+        <div class="nav-item hide-on-mobile" data-view="pelaporan">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M9 17v-2m4 2v-4m4 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
