@@ -3749,7 +3749,7 @@
         // KONFIGURASI URL WEB APP GOOGLE APPS SCRIPT
         // Tempelkan Web App URL hasil deploy berkas Code.gs Anda ke dalam tanda kutip di bawah:
         // =========================================================================================
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwczHBjGoxVm7Pv_o45NnFg1yaMVt6YLLnBmpzw97EhZQ4phbMVPpdT97xyCrO7KYHU/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTZuIrD2tsQhkE-Ndt4RQG45FflXSjEgiKNkC1StGzSMKyNvyaATvUVeMkaUZogA11/exec";
 
         // Registrasi Progressive Web App (PWA) dengan Dukungan Standalone WebAPK (Tanpa Logo Browser Shortcut)
         if ('serviceWorker' in navigator) {
@@ -4639,9 +4639,14 @@
                                 <div style="flex: 1;">
                                     <div style="font-size: 0.9rem; color: var(--text-main); font-weight: 600;">${reqName}</div>
                                 </div>
-                                <button class="btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 50px; background: #10b981; border-color: #10b981;" onclick="approveCollab('${c.ID}', '${reqName}')">
-                                    Setujui
-                                </button>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; border-radius: 50px; background: #10b981; border-color: #10b981;" onclick="handleCollabRequest('${c.ID}', '${reqName}', 'approve')">
+                                        Setujui
+                                    </button>
+                                    <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; border-radius: 50px; color: #ef4444; border-color: #ef4444;" onclick="handleCollabRequest('${c.ID}', '${reqName}', 'deny')">
+                                        Tolak
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         `;
@@ -4659,34 +4664,36 @@
             modal.classList.remove('active');
         };
 
-        window.approveCollab = async function (contentId, reqName) {
+        window.handleCollabRequest = async function (contentId, reqName, action) {
             const idx = contentPlans.findIndex(c => c.ID === contentId);
             if (idx === -1) return;
 
             const c = contentPlans[idx];
 
-            // Remove from request list
+            // Selalu hapus nama user dari daftar Request Kolaborasi (baik di-ACC maupun ditolak)
             let reqs = (c["Request Kolaborasi"] || "").split(',').map(s => s.trim()).filter(Boolean);
             reqs = reqs.filter(r => r !== reqName);
             c["Request Kolaborasi"] = reqs.join(', ');
 
-            // Add to collaborator list
-            let collabs = (c["Kolaborator"] || "").split(',').map(s => s.trim()).filter(Boolean);
-            if (!collabs.includes(reqName)) {
-                collabs.push(reqName);
-                c["Kolaborator"] = collabs.join(', ');
+            // Jika di-ACC, tambahkan nama ke dalam Kolaborator
+            if (action === 'approve') {
+                let collabs = (c["Kolaborator"] || "").split(',').map(s => s.trim()).filter(Boolean);
+                if (!collabs.includes(reqName)) {
+                    collabs.push(reqName);
+                    c["Kolaborator"] = collabs.join(', ');
+                }
             }
 
-            // Re-render UI
-            openApprovalModal(); // Refresh the list
+            // Re-render UI seketika agar badge & notif langsung update
+            openApprovalModal();
             updateApprovalBadge();
             renderContentPlan();
 
-            // Sync to backend
+            // Sync perubahan ke backend (Google Sheets)
             try {
                 await api.updateContentPlan(c);
             } catch (err) {
-                console.error("Gagal sinkronisasi approval:", err);
+                console.error("Gagal sinkronisasi approval/penolakan:", err);
             }
         };
 
