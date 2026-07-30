@@ -126,7 +126,7 @@
             width: 210mm;
             color: #000;
             background: #fff;
-            padding: 2.5cm 2cm;
+            padding: 2cm;
             box-sizing: border-box;
             line-height: 1.15;
             font-size: 11pt;
@@ -2364,29 +2364,33 @@
 
         <table style="width: 100%; border: none; font-size: 11pt; margin-bottom: 15px; font-family: Arial, sans-serif;">
             <tr>
-                <td style="width: 180px; font-weight: bold; padding: 2px 0; vertical-align: top;">Nama Mahasiswa</td>
+                <td style="width: 220px; font-weight: bold; padding: 2px 0; vertical-align: top;">Nama Mahasiswa</td>
                 <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-nama"></span></td>
-                <td style="width: 180px; font-weight: bold; padding: 2px 0; vertical-align: top;">Nama Lembaga</td>
-                <td style="padding: 2px 0; vertical-align: top;">: PIPD UIN Siber Syekh Nurjati Cirebon</td>
             </tr>
             <tr>
                 <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">NIM</td>
                 <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-nim"></span></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Program Studi/Jurusan</td>
+                <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-prodi"></span></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Periode Kegiatan</td>
+                <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-periode"></span></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Nama Lembaga</td>
+                <td style="padding: 2px 0; vertical-align: top;">: PIPD UIN Siber Syekh Nurjati Cirebon</td>
+            </tr>
+            <tr>
                 <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Alamat Lembaga</td>
                 <td style="padding: 2px 0; vertical-align: top;">: Jl. Perjuangan No.1, Karyamulya, Kec. Kesambi, Kota
                     Cirebon, Jawa Barat 45135</td>
             </tr>
             <tr>
-                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Program Studi/Jurusan</td>
-                <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-prodi"></span></td>
                 <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Nama Pimpinan Lembaga</td>
                 <td style="padding: 2px 0; vertical-align: top;">: Heru Mudiyanto</td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; padding: 2px 0; vertical-align: top;">Periode Kegiatan</td>
-                <td style="padding: 2px 0; vertical-align: top;">: <span id="print-jurnal-periode"></span></td>
-                <td></td>
-                <td></td>
             </tr>
         </table>
 
@@ -2985,7 +2989,7 @@
                 .viewport-wrapper #photo-preview {
                     width: 100%;
                     height: 100%;
-                    object-fit: cover;
+                    object-fit: contain;
                 }
 
                 .viewport-wrapper video {
@@ -3667,13 +3671,12 @@
                         <input type="date" id="input-jurnal-tanggal" class="form-input" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="input-jurnal-jam">Jam Shift (Mulai – Selesai) *</label>
-                        <select id="input-jurnal-jam" class="form-select">
-                            <option value="08.00 - 11.00">08.00 - 11.00</option>
-                            <option value="13.00 - 16.00">13.00 - 16.00</option>
-                            <option value="08.00 - 11.00 & 13.00 - 16.00">08.00 - 11.00 & 13.00 - 16.00 (Full Day)
-                            </option>
-                        </select>
+                        <label class="form-label">Jam Shift (Mulai – Selesai) *</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="time" id="input-jurnal-jam-mulai" class="form-input" required>
+                            <span> s.d. </span>
+                            <input type="time" id="input-jurnal-jam-selesai" class="form-input" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="input-jurnal-durasi">Durasi Pelaksanaan *</label>
@@ -3686,6 +3689,22 @@
                             <option value="6 Jam">6 Jam</option>
                             <option value="7 Jam">7 Jam</option>
                             <option value="8 Jam">8 Jam</option>
+                            <option value="9 Jam">9 Jam</option>
+                            <option value="10 Jam">10 Jam</option>
+                            <option value="11 Jam">11 Jam</option>
+                            <option value="12 Jam">12 Jam</option>
+                            <option value="13 Jam">13 Jam</option>
+                            <option value="14 Jam">14 Jam</option>
+                            <option value="15 Jam">15 Jam</option>
+                            <option value="16 Jam">16 Jam</option>
+                            <option value="17 Jam">17 Jam</option>
+                            <option value="18 Jam">18 Jam</option>
+                            <option value="19 Jam">19 Jam</option>
+                            <option value="20 Jam">20 Jam</option>
+                            <option value="21 Jam">21 Jam</option>
+                            <option value="22 Jam">22 Jam</option>
+                            <option value="23 Jam">23 Jam</option>
+                            <option value="24 Jam">24 Jam</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -3749,7 +3768,7 @@
         // KONFIGURASI URL WEB APP GOOGLE APPS SCRIPT
         // Tempelkan Web App URL hasil deploy berkas Code.gs Anda ke dalam tanda kutip di bawah:
         // =========================================================================================
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTZuIrD2tsQhkE-Ndt4RQG45FflXSjEgiKNkC1StGzSMKyNvyaATvUVeMkaUZogA11/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKPHgLvoMMyxhQHGopHshmPzVgzaeFP-dI0LNSt2Qzyr6LkdMNBk4oLvnCrs3XvbAF/exec";
 
         // Registrasi Progressive Web App (PWA) dengan Dukungan Standalone WebAPK (Tanpa Logo Browser Shortcut)
         if ('serviceWorker' in navigator) {
@@ -5578,10 +5597,7 @@
             try {
                 const isDesktop = window.innerWidth > 850;
                 const videoConstraints = {
-                    facingMode: absIsFront ? "user" : "environment",
-                    aspectRatio: isDesktop ? { ideal: 16 / 9 } : { ideal: 9 / 16 },
-                    width: isDesktop ? { ideal: 1280 } : { ideal: 720 },
-                    height: isDesktop ? { ideal: 720 } : { ideal: 1280 }
+                    facingMode: absIsFront ? "user" : "environment"
                 };
                 absStreamObj = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
                 absVideo.srcObject = absStreamObj;
@@ -5595,7 +5611,7 @@
                     const wrapper = document.querySelector('.viewport-wrapper');
                     if (wrapper) {
                         wrapper.style.aspectRatio = ratio;
-                        wrapper.style.maxHeight = isDesktop ? '420px' : '520px';
+                        wrapper.style.maxHeight = isDesktop ? '600px' : '650px';
                     }
                 };
 
@@ -5687,81 +5703,75 @@
             ctx.setTransform(1, 0, 0, 1, 0, 0);
 
             // --- DRAW PREMIUM BRANDED VOLABS WATERMARK ---
-            const scale = Math.max(0.75, Math.min(canvas.width, canvas.height) / 550);
+            // Skala disesuaikan agar proporsional dan profesional
+            const scale = Math.max(0.5, Math.min(canvas.width, canvas.height) / 1000);
             const padX = Math.round(24 * scale);
-            const bannerH = Math.round(125 * scale);
-            const bannerY = canvas.height - bannerH;
-
-            // 1. Dark Glass Background
-            const bgGrad = ctx.createLinearGradient(0, bannerY - 30, 0, canvas.height);
-            bgGrad.addColorStop(0, "rgba(15, 23, 42, 0)");
-            bgGrad.addColorStop(0.25, "rgba(15, 23, 42, 0.8)");
-            bgGrad.addColorStop(1, "rgba(15, 23, 42, 0.95)");
-            ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, bannerY - 30, canvas.width, bannerH + 30);
-
-            // 2. VOLABS Signature Gradient Accent Bar (Top edge of banner)
-            const accentGrad = ctx.createLinearGradient(0, bannerY, canvas.width, bannerY);
-            accentGrad.addColorStop(0, "#BC305F");
-            accentGrad.addColorStop(0.5, "#C03959");
-            accentGrad.addColorStop(1, "#F8A734");
-            ctx.fillStyle = accentGrad;
-            ctx.fillRect(0, bannerY, canvas.width, Math.max(3, Math.round(4 * scale)));
-
-            // 3. Brand Badge / Pill in Top-Right of Watermark
-            const badgeText = "⚡ VOLABS PIPD • VERIFIED GEOTAG";
-            ctx.font = `700 ${Math.round(11 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
-            const badgeW = ctx.measureText(badgeText).width + Math.round(24 * scale);
-            const badgeH = Math.round(24 * scale);
-            const badgeX = canvas.width - padX - badgeW;
-            const badgeY = bannerY - Math.round(12 * scale);
-
+            const padY = Math.round(24 * scale);
+            
             ctx.save();
-            ctx.beginPath();
-            if (ctx.roundRect) {
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, Math.round(12 * scale));
-            } else {
-                ctx.rect(badgeX, badgeY, badgeW, badgeH);
-            }
-            ctx.fillStyle = accentGrad;
-            ctx.fill();
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + badgeH / 2);
-            ctx.restore();
 
-            // 4. Typography - Date & Time (Top Row in Banner)
-            ctx.save();
-            ctx.textAlign = "left";
-            ctx.textBaseline = "top";
-            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-            ctx.shadowBlur = 4;
-
+            // Setup Typography
             const timeStr = new Date().toLocaleString("id-ID", { dateStyle: "full", timeStyle: "long" }).toUpperCase();
-            ctx.fillStyle = "#F8A734"; // Gold/Orange Accent for Time
-            ctx.font = `800 ${Math.round(15 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
-            ctx.fillText("🕒 " + timeStr, padX, bannerY + Math.round(16 * scale));
-
-            // 5. Typography - Location / Address (Middle Row)
             let locStr = absLokasi ? absLokasi.toUpperCase() : "LOKASI TERDETEKSI";
-            ctx.fillStyle = "#ffffff";
-            ctx.font = `700 ${Math.round(14 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
-            const maxLocW = canvas.width - (padX * 2);
-            if (ctx.measureText("📍 " + locStr).width > maxLocW) {
-                while (locStr.length > 10 && ctx.measureText("📍 " + locStr + "...").width > maxLocW) {
+            const userName = currentUser ? currentUser.namaLengkap.toUpperCase() : "RELAWAN VOLABS";
+            const coordStr = `🌐 LAT: ${absLat || '0.000'} | LON: ${absLon || '0.000'}   •   👤 ${userName}`;
+            const badgeText = "⚡ VOLABS PIPD • VERIFIED GEOTAG";
+
+            // Font configurations
+            const fontBadge = `700 ${Math.round(10 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
+            const fontTime = `800 ${Math.round(14 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
+            const fontLoc = `700 ${Math.round(12 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
+            const fontCoord = `600 ${Math.round(11 * scale)}px monospace`;
+
+            // Calculate max width for the box
+            ctx.font = fontTime; const wTime = ctx.measureText("🕒 " + timeStr).width;
+            ctx.font = fontLoc; const wLoc = ctx.measureText("📍 " + locStr).width;
+            ctx.font = fontCoord; const wCoord = ctx.measureText(coordStr).width;
+            ctx.font = fontBadge; const wBadgeText = ctx.measureText(badgeText).width;
+            
+            // Truncate location if it's too long (max width is half of canvas or length of coord)
+            const maxTextW = Math.min(canvas.width - (padX * 2), Math.max(wTime, wCoord, wBadgeText + Math.round(20 * scale)));
+            if (wLoc > maxTextW) {
+                while (locStr.length > 10 && ctx.measureText("📍 " + locStr + "...").width > maxTextW) {
                     locStr = locStr.slice(0, -1);
                 }
                 locStr += "...";
             }
-            ctx.fillText("📍 " + locStr, padX, bannerY + Math.round(44 * scale));
+            
+            // Draw Pure Left-Aligned Text with Strong Shadow (No Box, No Line)
+            const textX = padX;
+            let currentY = canvas.height - padY - Math.round(92 * scale); // Start drawing from top of the text block
 
-            // 6. Typography - Coordinates & Relawan Name (Bottom Row)
-            const userName = currentUser ? currentUser.namaLengkap.toUpperCase() : "RELAWAN VOLABS";
-            const coordStr = `🌐 LAT: ${absLat || '0.000'} | LON: ${absLon || '0.000'}   •   👤 ${userName}`;
-            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-            ctx.font = `600 ${Math.round(12 * scale)}px monospace`;
-            ctx.fillText(coordStr, padX, bannerY + Math.round(74 * scale));
+            // Setup common text styles
+            ctx.textAlign = "left";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
+            ctx.shadowBlur = Math.round(6 * scale);
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 1;
+
+            // 1. Draw Text Badge
+            ctx.fillStyle = "#F8A734";
+            ctx.font = fontBadge;
+            ctx.fillText(badgeText, textX, currentY);
+            currentY += Math.round(24 * scale);
+
+            // 2. Date & Time
+            ctx.font = fontTime;
+            ctx.fillText("🕒 " + timeStr, textX, currentY);
+            currentY += Math.round(26 * scale);
+
+            // 3. Location
+            ctx.fillStyle = "#ffffff";
+            ctx.font = fontLoc;
+            ctx.fillText("📍 " + locStr, textX, currentY);
+            currentY += Math.round(24 * scale);
+
+            // 4. Coordinates & Name
+            ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+            ctx.font = fontCoord;
+            ctx.fillText(coordStr, textX, currentY);
+
+            ctx.restore();
 
             ctx.restore();
 
@@ -5912,6 +5922,10 @@
                     periode: `1 Juli s.d. 31 Agustus 2026`
                 };
                 localStorage.setItem(getJurnalMetaKey(), JSON.stringify(meta));
+            } else if (volData.jur && meta.prodi !== volData.jur) {
+                // Sinkronisasi paksa jika ada pembaruan jurusan/prodi dari database pusat
+                meta.prodi = volData.jur;
+                localStorage.setItem(getJurnalMetaKey(), JSON.stringify(meta));
             }
 
             const elUiNama = document.getElementById('ui-jurnal-nama');
@@ -5933,7 +5947,8 @@
             // Fetch live dari Google Sheets di background (auto-sync per user)
             if (api && api.isConfigured() && currentUser) {
                 try {
-                    const sheetName = `Jurnal - ${currentUser.namaLengkap}`;
+                    const safeName = currentUser.namaLengkap.substring(0, 22).trim();
+                    const sheetName = `Jurnal - ${safeName}`;
                     const url = `${api.apiUrl}?action=read_jurnal&sheetName=${encodeURIComponent(sheetName)}&t=${new Date().getTime()}`;
                     const response = await fetch(url, { cache: "no-store" });
                     const result = await response.json();
@@ -5963,9 +5978,10 @@
                     prodi: '',
                     periode: '1 Juli s.d. 31 Agustus 2026'
                 };
+                const safeName = currentUser.namaLengkap.substring(0, 22).trim();
                 const payload = {
                     action: "sync_jurnal",
-                    sheetName: `Jurnal - ${currentUser.namaLengkap}`,
+                    sheetName: `Jurnal - ${safeName}`,
                     list: currentJurnalList,
                     meta: meta
                 };
@@ -6089,7 +6105,16 @@
                 const item = currentJurnalList[idx];
                 if (titleEl) titleEl.textContent = "Edit Kegiatan Jurnal";
                 document.getElementById('input-jurnal-tanggal').value = item.tanggal || '';
-                document.getElementById('input-jurnal-jam').value = item.jam || '08.00 - 11.00';
+                let jmMulai = '08:00', jmSelesai = '11:00';
+                if (item.jam) {
+                    const parts = item.jam.split('-');
+                    if (parts.length >= 2) {
+                        jmMulai = parts[0].trim().replace('.', ':');
+                        jmSelesai = parts[1].trim().replace('.', ':');
+                    }
+                }
+                document.getElementById('input-jurnal-jam-mulai').value = jmMulai;
+                document.getElementById('input-jurnal-jam-selesai').value = jmSelesai;
                 document.getElementById('input-jurnal-durasi').value = item.durasi || '3 Jam';
                 document.getElementById('input-jurnal-uraian').value = item.uraian || '';
             } else {
@@ -6099,7 +6124,8 @@
                 const mm = String(now.getMonth() + 1).padStart(2, '0');
                 const dd = String(now.getDate()).padStart(2, '0');
                 document.getElementById('input-jurnal-tanggal').value = `${yyyy}-${mm}-${dd}`;
-                document.getElementById('input-jurnal-jam').value = '08.00 - 11.00';
+                document.getElementById('input-jurnal-jam-mulai').value = '08:00';
+                document.getElementById('input-jurnal-jam-selesai').value = '11:00';
                 document.getElementById('input-jurnal-durasi').value = '3 Jam';
                 document.getElementById('input-jurnal-uraian').value = '';
             }
@@ -6113,7 +6139,9 @@
         function saveJurnalItemModal() {
             const idx = parseInt(document.getElementById('edit-jurnal-index').value, 10);
             const tgl = document.getElementById('input-jurnal-tanggal').value;
-            const jam = document.getElementById('input-jurnal-jam').value;
+            const jamMulai = document.getElementById('input-jurnal-jam-mulai').value;
+            const jamSelesai = document.getElementById('input-jurnal-jam-selesai').value;
+            const jam = `${jamMulai} - ${jamSelesai}`;
             const durasi = document.getElementById('input-jurnal-durasi').value;
             const uraian = document.getElementById('input-jurnal-uraian').value.trim();
 
@@ -6232,7 +6260,7 @@
                 setTimeout(() => {
                     const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Jurnal Harian Pengabdian</title></" + "head><" + "body>";
                     const footer = "</" + "body></" + "html>";
-                    const styles = "<style>#print-area-jurnal { font-family: Arial, sans-serif; font-size: 11pt; color: #000; line-height: 1.15; padding: 2.5cm 2cm; } table { border-collapse: collapse; width: 100%; font-size: 11pt; } td, th { padding: 6px 8px; border: 1px solid #000; } </style>";
+                    const styles = "<style>#print-area-jurnal { font-family: Arial, sans-serif; font-size: 11pt; color: #000; line-height: 1.15; padding: 2cm; } table { border-collapse: collapse; width: 100%; font-size: 11pt; } td, th { padding: 6px 8px; border: 1px solid #000; } </style>";
                     const htmlContent = header + styles + "<div id='print-area-jurnal'>" + printAreaJurnal.innerHTML + "</div>" + footer;
 
                     const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
@@ -6259,7 +6287,7 @@
                     pageMarginStyle.id = 'print-page-margin-override';
                     document.head.appendChild(pageMarginStyle);
                 }
-                pageMarginStyle.innerHTML = `@media print { @page { size: A4; margin: 2.5cm 2cm 2.5cm 2cm !important; } }`;
+                pageMarginStyle.innerHTML = `@media print { @page { size: A4; margin: 2cm !important; } }`;
 
                 let parent = printAreaJurnal.parentElement;
                 while (parent && parent !== document.body && parent !== document.documentElement) {
