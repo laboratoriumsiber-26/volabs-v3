@@ -3065,7 +3065,7 @@
                 }
 
                 .viewport-wrapper video,
-                .viewport-wrapper #photo-preview {
+                .viewport-wrapper #abs-photo-preview {
                     width: 100%;
                     height: 100%;
                     object-fit: contain;
@@ -3076,7 +3076,7 @@
                     display: none;
                 }
 
-                .viewport-wrapper #photo-preview {
+                .viewport-wrapper #abs-photo-preview {
                     display: none;
                 }
 
@@ -5721,7 +5721,15 @@
                     const wrapper = document.querySelector('.viewport-wrapper');
                     if (wrapper) {
                         wrapper.style.aspectRatio = ratio;
-                        wrapper.style.maxHeight = isDesktop ? '600px' : '650px';
+                        // Batasi ukuran preview agar tidak terlalu raksasa (terlihat ngezoom) di layar PC
+                        if (isDesktop) {
+                            wrapper.style.maxHeight = '450px';
+                            wrapper.style.maxWidth = '600px';
+                            wrapper.style.margin = '0 auto';
+                        } else {
+                            wrapper.style.maxHeight = '550px';
+                            wrapper.style.maxWidth = '100%';
+                        }
                     }
                 };
 
@@ -5840,30 +5848,47 @@
             const badgeText = "⚡ VOLABS PIPD • VERIFIED GEOTAG";
 
             // Font configurations
-            const fontBadge = `700 ${Math.round(10 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
-            const fontTime = `800 ${Math.round(14 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
-            const fontLoc = `700 ${Math.round(12 * scale)}px 'Plus Jakarta Sans', Arial, sans-serif`;
+            const fontBadge = `700 ${Math.round(10 * scale)}px 'Fira Sans', Arial, sans-serif`;
+            const fontTime = `800 ${Math.round(14 * scale)}px 'Fira Sans', Arial, sans-serif`;
+            const fontLoc = `700 ${Math.round(12 * scale)}px 'Fira Sans', Arial, sans-serif`;
             const fontCoord = `600 ${Math.round(11 * scale)}px monospace`;
 
-            // Calculate max width for the box
-            ctx.font = fontTime; const wTime = ctx.measureText("🕒 " + timeStr).width;
-            ctx.font = fontLoc; const wLoc = ctx.measureText("📍 " + locStr).width;
+            // Text wrapping helper
+            function wrapText(ctx, text, maxWidth) {
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = words[0] || '';
+                for (let i = 1; i < words.length; i++) {
+                    const word = words[i];
+                    const width = ctx.measureText(currentLine + " " + word).width;
+                    if (width < maxWidth) {
+                        currentLine += " " + word;
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    }
+                }
+                if (currentLine) lines.push(currentLine);
+                return lines;
+            }
+
+            // Calculate widths
+            ctx.font = fontTime; const wTime = ctx.measureText(timeStr).width;
             ctx.font = fontCoord; const wCoord = ctx.measureText(coordStr).width;
             ctx.font = fontBadge; const wBadgeText = ctx.measureText(badgeText).width;
 
-            // Truncate location if it's too long (max width is half of canvas or length of coord)
-            const maxTextW = Math.min(canvas.width - (padX * 2), Math.max(wTime, wCoord, wBadgeText + Math.round(20 * scale)));
-            if (wLoc > maxTextW) {
-                while (locStr.length > 10 && ctx.measureText("📍 " + locStr + "...").width > maxTextW) {
-                    locStr = locStr.slice(0, -1);
-                }
-                locStr += "...";
-            }
+            const maxTextW = Math.max(canvas.width * 0.6, canvas.width - (padX * 4) - Math.round(50 * scale));
+            ctx.font = fontLoc;
+            const locLines = wrapText(ctx, locStr, maxTextW);
 
             // --- DRAW PREMIUM VOLABS GEOTAG (Grand Design) ---
             // Box dimensions
-            const boxW = Math.min(canvas.width - (padX * 2), maxTextW + Math.round(50 * scale));
-            const boxH = Math.round(115 * scale);
+            let maxLineW = Math.max(wTime, wCoord, wBadgeText + Math.round(20 * scale));
+            for (let l of locLines) { maxLineW = Math.max(maxLineW, ctx.measureText(l).width); }
+
+            const boxW = Math.min(canvas.width - (padX * 2), maxLineW + Math.round(50 * scale));
+            const baseBoxH = Math.round(115 * scale);
+            const boxH = baseBoxH + (locLines.length - 1) * Math.round(22 * scale);
             const boxX = padX;
             const boxY = canvas.height - padY - boxH;
 
@@ -5944,7 +5969,10 @@
             drawDot(currentY, "#ffffff");
             ctx.fillStyle = "#ffffff";
             ctx.font = fontLoc;
-            ctx.fillText(locStr, textX, currentY);
+            for (let i = 0; i < locLines.length; i++) {
+                ctx.fillText(locLines[i], textX, currentY);
+                if (i < locLines.length - 1) currentY += Math.round(22 * scale);
+            }
             currentY += Math.round(22 * scale);
 
             // 5. Coordinates & Name
