@@ -3208,12 +3208,7 @@
             <!-- Controls & Filter Bar -->
             <div class="control-bar">
                 <div class="filters-group" style="flex: 1;">
-                    <select id="filter-jurnal-jam" class="filter-select" onchange="window.renderJurnalUi()">
-                        <option value="ALL">Semua Jam Shift</option>
-                        <option value="08.00 - 11.00">08.00 - 11.00</option>
-                        <option value="13.00 - 16.00">13.00 - 16.00</option>
-                        <option value="08.00 - 11.00 & 13.00 - 16.00">08.00 - 11.00 & 13.00 - 16.00 (Full Day)</option>
-                    </select>
+                    <input type="text" id="filter-jurnal-jam" class="filter-select" placeholder="Cari Jam Shift..." oninput="window.renderJurnalUi()">
 
                     <select id="filter-jurnal-durasi" class="filter-select" onchange="window.renderJurnalUi()">
                         <option value="ALL">Semua Durasi</option>
@@ -3225,6 +3220,22 @@
                         <option value="6 Jam">6 Jam</option>
                         <option value="7 Jam">7 Jam</option>
                         <option value="8 Jam">8 Jam</option>
+                        <option value="9 Jam">9 Jam</option>
+                        <option value="10 Jam">10 Jam</option>
+                        <option value="11 Jam">11 Jam</option>
+                        <option value="12 Jam">12 Jam</option>
+                        <option value="13 Jam">13 Jam</option>
+                        <option value="14 Jam">14 Jam</option>
+                        <option value="15 Jam">15 Jam</option>
+                        <option value="16 Jam">16 Jam</option>
+                        <option value="17 Jam">17 Jam</option>
+                        <option value="18 Jam">18 Jam</option>
+                        <option value="19 Jam">19 Jam</option>
+                        <option value="20 Jam">20 Jam</option>
+                        <option value="21 Jam">21 Jam</option>
+                        <option value="22 Jam">22 Jam</option>
+                        <option value="23 Jam">23 Jam</option>
+                        <option value="24 Jam">24 Jam</option>
                     </select>
                 </div>
 
@@ -5707,7 +5718,7 @@
             const scale = Math.max(0.5, Math.min(canvas.width, canvas.height) / 1000);
             const padX = Math.round(24 * scale);
             const padY = Math.round(24 * scale);
-            
+
             ctx.save();
 
             // Setup Typography
@@ -5728,7 +5739,7 @@
             ctx.font = fontLoc; const wLoc = ctx.measureText("📍 " + locStr).width;
             ctx.font = fontCoord; const wCoord = ctx.measureText(coordStr).width;
             ctx.font = fontBadge; const wBadgeText = ctx.measureText(badgeText).width;
-            
+
             // Truncate location if it's too long (max width is half of canvas or length of coord)
             const maxTextW = Math.min(canvas.width - (padX * 2), Math.max(wTime, wCoord, wBadgeText + Math.round(20 * scale)));
             if (wLoc > maxTextW) {
@@ -5737,37 +5748,97 @@
                 }
                 locStr += "...";
             }
+
+            // --- DRAW PREMIUM VOLABS GEOTAG (Grand Design) ---
+            // Box dimensions
+            const boxW = Math.min(canvas.width - (padX * 2), maxTextW + Math.round(50 * scale));
+            const boxH = Math.round(115 * scale);
+            const boxX = padX;
+            const boxY = canvas.height - padY - boxH;
+
+            // 1. Draw Sleek Floating Glass Box
+            ctx.shadowColor = "rgba(0,0,0,0.15)";
+            ctx.shadowBlur = Math.round(15 * scale);
+            ctx.shadowOffsetY = Math.round(5 * scale);
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(boxX, boxY, boxW, boxH, Math.round(14 * scale));
+            } else {
+                ctx.rect(boxX, boxY, boxW, boxH);
+            }
+            ctx.fillStyle = "rgba(15, 23, 42, 0.85)"; // Deep slate glass
+            ctx.fill();
             
-            // Draw Pure Left-Aligned Text with Strong Shadow (No Box, No Line)
-            const textX = padX;
-            let currentY = canvas.height - padY - Math.round(92 * scale); // Start drawing from top of the text block
+            // Gradient Border for the box
+            const accentGrad = ctx.createLinearGradient(boxX, boxY, boxX + boxW, boxY + boxH);
+            accentGrad.addColorStop(0, "#F8A734");
+            accentGrad.addColorStop(0.5, "#C03959");
+            accentGrad.addColorStop(1, "#BC305F");
+            ctx.lineWidth = Math.round(1.5 * scale);
+            ctx.strokeStyle = "rgba(255,255,255,0.15)";
+            ctx.stroke();
+            ctx.shadowColor = "transparent";
 
-            // Setup common text styles
-            ctx.textAlign = "left";
-            ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
-            ctx.shadowBlur = Math.round(6 * scale);
-            ctx.shadowOffsetX = 1;
-            ctx.shadowOffsetY = 1;
+            // Starting positions inside the box
+            const textX = boxX + Math.round(34 * scale);
+            const dotX = boxX + Math.round(20 * scale);
+            let currentY = boxY + Math.round(22 * scale);
 
-            // 1. Draw Text Badge
-            ctx.fillStyle = "#F8A734";
+            // 2. Draw Badge / Pill for "VERIFIED GEOTAG"
+            const badgeW = wBadgeText + Math.round(16 * scale);
+            const badgeH = Math.round(22 * scale);
+            const badgeY = currentY - Math.round(11 * scale);
+            
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(boxX + Math.round(16 * scale), badgeY, badgeW, badgeH, Math.round(6 * scale));
+            } else {
+                ctx.rect(boxX + Math.round(16 * scale), badgeY, badgeW, badgeH);
+            }
+            const badgeGrad = ctx.createLinearGradient(boxX, badgeY, boxX + badgeW, badgeY);
+            badgeGrad.addColorStop(0, "#BC305F");
+            badgeGrad.addColorStop(1, "#F8A734");
+            ctx.fillStyle = badgeGrad;
+            ctx.fill();
+
+            ctx.fillStyle = "#ffffff";
             ctx.font = fontBadge;
-            ctx.fillText(badgeText, textX, currentY);
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(badgeText, boxX + Math.round(16 * scale) + badgeW / 2, badgeY + badgeH / 2);
+
+            currentY += Math.round(22 * scale);
+
+            // Helper to draw indicator dots
+            function drawDot(y, color) {
+                ctx.beginPath();
+                ctx.arc(dotX, y, Math.round(4 * scale), 0, 2 * Math.PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+
+            // Common text styles
+            ctx.textAlign = "left";
+            ctx.shadowColor = "rgba(0,0,0,0.8)";
+            ctx.shadowBlur = 2;
+
+            // 3. Date & Time
+            drawDot(currentY, "#F8A734");
+            ctx.fillStyle = "#F8A734"; // Accent color
+            ctx.font = fontTime;
+            ctx.fillText(timeStr, textX, currentY);
             currentY += Math.round(24 * scale);
 
-            // 2. Date & Time
-            ctx.font = fontTime;
-            ctx.fillText("🕒 " + timeStr, textX, currentY);
-            currentY += Math.round(26 * scale);
-
-            // 3. Location
+            // 4. Location
+            drawDot(currentY, "#ffffff");
             ctx.fillStyle = "#ffffff";
             ctx.font = fontLoc;
-            ctx.fillText("📍 " + locStr, textX, currentY);
-            currentY += Math.round(24 * scale);
+            ctx.fillText(locStr, textX, currentY);
+            currentY += Math.round(22 * scale);
 
-            // 4. Coordinates & Name
-            ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+            // 5. Coordinates & Name
+            drawDot(currentY, "#C03959");
+            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
             ctx.font = fontCoord;
             ctx.fillText(coordStr, textX, currentY);
 
@@ -6016,7 +6087,7 @@
             const filterDurasi = filterDurasiEl ? filterDurasiEl.value : 'ALL';
 
             const filtered = currentJurnalList.filter(item => {
-                const matchJam = (filterJam === 'ALL' || item.jam === filterJam);
+                const matchJam = (!filterJam || filterJam === 'ALL' || (item.jam || '').toLowerCase().includes(filterJam.toLowerCase()));
                 const matchDurasi = (filterDurasi === 'ALL' || item.durasi === filterDurasi);
                 return matchJam && matchDurasi;
             });
