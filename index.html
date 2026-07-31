@@ -5614,7 +5614,9 @@
             try {
                 const isDesktop = window.innerWidth > 850;
                 const videoConstraints = {
-                    facingMode: absIsFront ? "user" : "environment"
+                    facingMode: absIsFront ? "user" : "environment",
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
                 };
                 absStreamObj = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
                 absVideo.srcObject = absStreamObj;
@@ -5713,10 +5715,22 @@
 
         function jepretFoto() {
             const canvas = document.getElementById("abs-canvas");
-            canvas.width = absVideo.videoWidth; canvas.height = absVideo.videoHeight;
+            let targetW = absVideo.videoWidth || 1280;
+            let targetH = absVideo.videoHeight || 720;
+            
+            // Force Minimum FULL HD Resolution (1920px) for Crisp Watermark
+            if (targetW < 1920 && targetH < 1920) {
+                const scaleUp = 1920 / Math.max(targetW, targetH);
+                targetW = Math.round(targetW * scaleUp);
+                targetH = Math.round(targetH * scaleUp);
+            }
+            
+            canvas.width = targetW; 
+            canvas.height = targetH;
             const ctx = canvas.getContext("2d");
+            
             if (absIsFront) { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
-            ctx.drawImage(absVideo, 0, 0);
+            ctx.drawImage(absVideo, 0, 0, targetW, targetH);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
 
             // --- DRAW PREMIUM BRANDED VOLABS WATERMARK ---
@@ -5852,7 +5866,8 @@
 
             ctx.restore();
 
-            absFotoBase64 = canvas.toDataURL("image/jpeg", 0.7);
+            // Lossless Uncompressed PNG Format as requested
+            absFotoBase64 = canvas.toDataURL("image/png");
             absPhoto.src = absFotoBase64; absPhoto.style.display = "block"; absVideo.style.display = "none"; absOverlay.style.display = "none";
             document.getElementById("abs-action-cam").style.display = "none"; document.getElementById("abs-action-retake").style.display = "block";
         }
