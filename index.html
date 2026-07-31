@@ -2209,6 +2209,74 @@
         .sun-icon-toggle {
             color: #f39c12;
         }
+
+        /* --- Login Screen Styling --- */
+        .login-wrapper {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100dvh; 
+            background: var(--bg-primary); 
+            z-index: 10000; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            box-sizing: border-box;
+        }
+
+        .login-card {
+            background: var(--bg-secondary); 
+            padding: 40px 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px; 
+            text-align: center; 
+            margin: 0;
+        }
+
+        @media (max-width: 600px) {
+            .login-card {
+                background: transparent;
+                box-shadow: none;
+                padding: 10px;
+                border-radius: 0;
+            }
+            .login-card h2 {
+                font-size: 26px;
+            }
+            .login-card .form-group label {
+                display: none; /* Instagram style avoids labels, uses placeholders */
+            }
+            .login-card .form-group {
+                margin-bottom: 20px !important;
+            }
+            .login-card .form-control {
+                padding: 16px 20px;
+                font-size: 15px;
+                border-radius: 12px;
+                background: var(--bg-secondary);
+                border: 1px solid transparent; /* Remove outline */
+                box-shadow: 0 4px 12px rgba(0,0,0,0.03); /* Soft blending shadow */
+            }
+            .login-card .form-control:focus {
+                border-color: var(--primary); /* subtle highlight */
+                box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            }
+            .login-card .btn {
+                padding: 14px;
+                font-size: 15px;
+                border-radius: 8px;
+                font-weight: 600;
+            }
+            .login-card .install-pwa-btn {
+                padding: 14px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+        }
     </style>
 </head>
 
@@ -2217,10 +2285,8 @@
     <!-- ========================================== -->
     <!-- LOGIN SCREEN (RBAC)                        -->
     <!-- ========================================== -->
-    <div id="login-screen"
-        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-primary); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-        <div
-            style="background: var(--bg-secondary); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center;">
+    <div id="login-screen" class="login-wrapper">
+        <div class="login-card">
             <img src="logo.png" alt="VoLabs Logo" style="height: 60px; object-fit: contain; margin-bottom: 20px;">
             <h2 style="margin-bottom: 10px; color: var(--text-primary);">VoLabs V.3</h2>
             <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">Sistem Manajemen & Pelaporan
@@ -2234,15 +2300,31 @@
                 </div>
                 <div class="form-group" style="text-align: left; margin-bottom: 24px;">
                     <label>Password</label>
-                    <input type="password" id="login-password" class="form-control" autocomplete="off" autocorrect="off"
-                        autocapitalize="off" spellcheck="false" placeholder="Masukkan password">
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" id="login-password" class="form-control" autocomplete="off" autocorrect="off"
+                            autocapitalize="off" spellcheck="false" placeholder="Masukkan password" style="padding-right: 48px; width: 100%; box-sizing: border-box;">
+                        <button type="button" onclick="togglePassword()" style="position: absolute; right: 12px; color: var(--text-muted); background: transparent; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2;">
+                            <svg id="eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <button type="button" id="btn-login" class="btn btn-primary" onclick="handleLogin(event)"
                     style="width: 100%; justify-content: center;">Masuk ke Dashboard</button>
+                <button type="button" class="btn btn-outline install-pwa-btn" onclick="triggerPwaInstall()"
+                    style="width: 100%; justify-content: center; margin-top: 12px; border-color: var(--border-color); color: var(--text-secondary); padding: 12px; font-weight: 600; display: none; align-items: center; gap: 8px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Download Aplikasi
+                </button>
             </div>
         </div>
-        <p style="margin-top: 20px; color: var(--text-tertiary); font-size: 12px;">© 2026 VoLabs V.3. Powered by PIPD
-            UIN Siber Syekh Nurjati Cirebon</p>
+        <div style="position: absolute; bottom: 24px; left: 0; width: 100%; text-align: center; padding: 0 20px; box-sizing: border-box;">
+            <p style="color: var(--text-tertiary); font-size: 11px; line-height: 1.5; margin: 0;">© 2026 VoLabs V.3.<br>Powered by PIPD UIN Siber Syekh Nurjati Cirebon</p>
+        </div>
     </div>
 
     <!-- AREA PRINT LAPORAN (Sembunyi secara default) -->
@@ -2466,9 +2548,8 @@
         </div>
 
         <div class="header-actions">
-            <!-- Tombol Instal PWA (Muncul otomatis saat siap diinstal) -->
-            <button class="icon-btn install-badge" id="btn-install-pwa" data-tooltip="Download VoLabs"
-                style="display: none;">
+            <!-- Tombol Instal PWA -->
+            <button class="icon-btn install-pwa-btn" id="btn-install-pwa" data-tooltip="Download VoLabs" onclick="triggerPwaInstall()" style="display: none;">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -3828,30 +3909,28 @@
             return d;
         }
 
-        let deferredPrompt;
-        const btnInstallPwa = document.getElementById('btn-install-pwa');
+        let deferredPrompt = null;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            btnInstallPwa.style.display = 'inline-flex';
+            const btns = document.querySelectorAll('.install-pwa-btn');
+            btns.forEach(btn => {
+                if (btn.id === 'btn-install-pwa') btn.style.display = 'inline-flex';
+                else btn.style.display = 'flex';
+            });
         });
 
-        btnInstallPwa.addEventListener('click', async () => {
+        async function triggerPwaInstall() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
-                    btnInstallPwa.style.display = 'none';
+                    const btns = document.querySelectorAll('.install-pwa-btn');
+                    btns.forEach(btn => btn.style.display = 'none');
                 }
                 deferredPrompt = null;
-            } else {
-                showCustomDialog({
-                    title: "Instal Aplikasi",
-                    message: "VoLabs V.2",
-                    confirmText: "Mengerti"
-                });
             }
-        });
+        }
 
         // Konfigurasi Standar dan Opsi Dropdown
         const CONFIG = {
@@ -3888,8 +3967,8 @@
         function showCustomDialog({ title, message, type = 'confirm', confirmText = 'Ya', confirmColor = 'var(--primary)', inputValue = '' }) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('modal-dialog');
-                document.getElementById('dialog-title').textContent = title;
-                document.getElementById('dialog-message').textContent = message;
+                document.getElementById('dialog-title').innerHTML = title;
+                document.getElementById('dialog-message').innerHTML = message;
 
                 const inputEl = document.getElementById('dialog-input');
                 if (type === 'prompt') {
@@ -5366,6 +5445,18 @@
                 // Mahasiswa hanya bisa melihat Absen, Proker, Progres
             } else if (isAdmin) {
                 // Admin bisa melihat semuanya
+            }
+        }
+
+        function togglePassword() {
+            const input = document.getElementById('login-password');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
             }
         }
 
