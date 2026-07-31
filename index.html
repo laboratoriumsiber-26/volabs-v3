@@ -1610,40 +1610,46 @@
             right: 0;
             z-index: 50;
             background: var(--bg-glass);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid var(--border-color);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 0.6rem 0;
-            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
+            padding-top: 0.5rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0.25rem));
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.03);
         }
 
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.35rem;
             color: var(--text-muted);
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             font-weight: 600;
-            padding: 0.4rem 1rem;
+            padding: 0.25rem 0.5rem;
             border-radius: var(--radius-md);
-            transition: var(--transition);
+            transition: all 0.2s ease;
             cursor: pointer;
             flex: 1;
         }
 
         .nav-item svg {
-            width: 20px;
-            height: 20px;
-            stroke-width: 2;
-            transition: transform 0.2s ease;
+            width: 22px;
+            height: 22px;
+            stroke-width: 1.8;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .nav-item.active {
             color: var(--primary);
+        }
+
+        [data-theme="dark"] .bottom-nav {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(15, 23, 42, 0.75);
         }
 
         [data-theme="dark"] .nav-item.active {
@@ -1651,6 +1657,7 @@
         }
 
         .nav-item.active svg {
+            stroke-width: 2.5;
             transform: translateY(-2px);
         }
 
@@ -5833,8 +5840,16 @@
             ctx.setTransform(1, 0, 0, 1, 0, 0);
 
             // --- DRAW PREMIUM BRANDED VOLABS WATERMARK ---
-            // Skala disesuaikan agar proporsional dan profesional
-            const scale = Math.max(0.5, Math.min(canvas.width, canvas.height) / 1000);
+            // Skala disesuaikan agar proporsional secara cerdas (Portrait vs Landscape)
+            const isPortrait = canvas.height > canvas.width;
+            let scale;
+            if (isPortrait) {
+                // HP / Mobile: Watermark lebih besar & jelas (lebar layar lebih kecil)
+                scale = Math.max(0.7, canvas.width / 750);
+            } else {
+                // PC / Web: Proporsi elegan, tidak menutupi gambar
+                scale = Math.max(0.6, canvas.height / 850);
+            }
             const padX = Math.round(24 * scale);
             const padY = Math.round(24 * scale);
 
