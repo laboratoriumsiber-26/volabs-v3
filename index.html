@@ -23,6 +23,9 @@
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
 
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <!-- Libraries for Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -325,9 +328,9 @@
             padding: 0;
         }
 
-        /* Font otomatis menyesuaikan native device */
+        /* Web Fonts configuration */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-family: 'Fira Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-primary);
             color: var(--text-main);
             line-height: 1.5;
@@ -338,12 +341,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
+        h1, h2, h3, h4, h5, h6 {
             font-family: inherit;
             font-weight: 700;
             color: var(--text-main);
@@ -432,10 +430,11 @@
         }
 
         .brand-text h1 {
-            font-size: 0.95rem;
+            font-size: 1.05rem;
             font-weight: 700;
             margin-bottom: 0;
             color: var(--text-main);
+            letter-spacing: -0.01em;
         }
 
         .brand-text span {
@@ -447,7 +446,7 @@
 
         @media (min-width: 768px) {
             .brand-text h1 {
-                font-size: 1.1rem;
+                font-size: 1.25rem;
             }
 
             .brand-text span {
