@@ -6461,7 +6461,13 @@
             if (!currentJurnalList || currentJurnalList.length === 0) {
                 tbodyPrint.innerHTML = `<tr><td colspan="5" style="border: 1px solid #000; padding: 15px; text-align: center; font-style: italic;">Belum ada entri jurnal kegiatan.</td></tr>`;
             } else {
-                tbodyPrint.innerHTML = currentJurnalList.map((item, idx) => `
+                let totalJam = 0;
+                const rows = currentJurnalList.map((item, idx) => {
+                    if (item.durasi) {
+                        const jam = parseInt(item.durasi.replace(/[^0-9]/g, ''), 10);
+                        if (!isNaN(jam)) totalJam += jam;
+                    }
+                    return `
                     <tr>
                         <td style="border: 1px solid #000; padding: 6px; text-align: center; vertical-align: top;">${idx + 1}</td>
                         <td style="border: 1px solid #000; padding: 6px; text-align: center; vertical-align: top;">${formatTanggalIndo(item.tanggal) || item.tanggal || '-'}</td>
@@ -6469,7 +6475,18 @@
                         <td style="border: 1px solid #000; padding: 6px; text-align: center; vertical-align: top;">${item.durasi || '-'}</td>
                         <td style="border: 1px solid #000; padding: 6px; text-align: left; vertical-align: top; white-space: pre-wrap;">${item.uraian || '-'}</td>
                     </tr>
-                `).join("");
+                    `;
+                }).join("");
+
+                const totalRow = `
+                    <tr>
+                        <td colspan="3" style="border: 1px solid #000; padding: 8px 12px; text-align: right; font-weight: bold; background-color: #f8fafc;">Total Durasi Pelaksanaan Kegiatan:</td>
+                        <td style="border: 1px solid #000; padding: 8px 6px; text-align: center; font-weight: bold; background-color: #f8fafc; font-size: 1.05em;">${totalJam} Jam</td>
+                        <td style="border: 1px solid #000; padding: 8px; background-color: #f8fafc;"></td>
+                    </tr>
+                `;
+
+                tbodyPrint.innerHTML = rows + totalRow;
             }
         }
 
