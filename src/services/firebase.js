@@ -1,16 +1,17 @@
 // Firebase Cloud Firestore Service for VoLABS PIPD
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/firestore';
 import { state } from '../store/state.js';
 
-// Default Firebase Configuration
-// Dapat disesuaikan langsung di sini atau melalui localStorage 'volabs_firebase_config'
+// Default Firebase Configuration dari Environment / Fallback Konfigurasi Project
 export const DEFAULT_FIREBASE_CONFIG = {
-    apiKey: "AIzaSyBgYq7GQi_T8faQlHDTwiPbu--AXWmtQHE",
-    authDomain: "volabs-3540a.firebaseapp.com",
-    projectId: "volabs-3540a",
-    storageBucket: "volabs-3540a.firebasestorage.app",
-    messagingSenderId: "443981213348",
-    appId: "1:443981213348:web:8ec75ee3755aa9eebfc031",
-    measurementId: "G-9KY2PQV5RR"
+    apiKey: (import.meta.env && import.meta.env.VITE_FIREBASE_API_KEY) || "AIzaSyBgYq7GQi_T8faQlHDTwiPbu--AXWmtQHE",
+    authDomain: (import.meta.env && import.meta.env.VITE_FIREBASE_AUTH_DOMAIN) || "volabs-3540a.firebaseapp.com",
+    projectId: (import.meta.env && import.meta.env.VITE_FIREBASE_PROJECT_ID) || "volabs-3540a",
+    storageBucket: (import.meta.env && import.meta.env.VITE_FIREBASE_STORAGE_BUCKET) || "volabs-3540a.firebasestorage.app",
+    messagingSenderId: (import.meta.env && import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID) || "443981213348",
+    appId: (import.meta.env && import.meta.env.VITE_FIREBASE_APP_ID) || "1:443981213348:web:8ec75ee3755aa9eebfc031",
+    measurementId: (import.meta.env && import.meta.env.VITE_FIREBASE_MEASUREMENT_ID) || "G-9KY2PQV5RR"
 };
 
 export function getActiveFirebaseConfig() {
@@ -18,8 +19,10 @@ export function getActiveFirebaseConfig() {
         const stored = localStorage.getItem('volabs_firebase_config');
         if (stored) {
             const parsed = JSON.parse(stored);
-            if (parsed && parsed.projectId && parsed.projectId !== "YOUR_PROJECT_ID") {
+            if (parsed && parsed.projectId === "volabs-3540a") {
                 return parsed;
+            } else {
+                localStorage.removeItem('volabs_firebase_config');
             }
         }
     } catch (e) {
@@ -30,31 +33,23 @@ export function getActiveFirebaseConfig() {
 
 export const FIREBASE_CONFIG = getActiveFirebaseConfig();
 
-export let db = null;
+// Inisialisasi Firebase App secara native (Bundled, 0ms race-condition, auto-sync lintas perangkat)
+if (!firebase.apps.length) {
+    try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+    } catch (e) {
+        console.warn("Firebase initializeApp notice:", e);
+    }
+}
+
+export const db = firebase.firestore();
 let listenersInitialized = false;
 
 export function initFirebase() {
     try {
-        const activeConfig = getActiveFirebaseConfig();
-        if (typeof firebase !== 'undefined' && activeConfig.apiKey && activeConfig.apiKey !== "YOUR_FIREBASE_API_KEY") {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(activeConfig);
-            }
-            db = firebase.firestore();
-            if (typeof firebase.analytics === 'function' && activeConfig.measurementId) {
-                try {
-                    firebase.analytics();
-                } catch (anErr) {
-                    console.log("Firebase Analytics notice:", anErr);
-                }
-            }
-            console.log("Firebase Cloud Firestore berhasil terhubung ke project:", activeConfig.projectId);
-            setupFirebaseListeners();
-            return true;
-        } else {
-            console.log("Firebase Firestore belum dikonfigurasi. Menggunakan penyimpanan lokal cepat (Offline/Local Cache Ready).");
-            return false;
-        }
+        console.log("Firebase Cloud Firestore aktif dan tersinkronisasi:", FIREBASE_CONFIG.projectId);
+        setupFirebaseListeners();
+        return true;
     } catch (err) {
         console.warn("Firebase Init Notice:", err);
         return false;

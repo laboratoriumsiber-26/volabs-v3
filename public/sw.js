@@ -1,5 +1,5 @@
 // VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v6';
+const CACHE_NAME = 'volabs-pipd-cache-v7';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -8,6 +8,12 @@ const ASSETS_TO_CACHE = [
     '/icon-512.png',
     '/logo.png'
 ];
+
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'skipWaiting') {
+        self.skipWaiting();
+    }
+});
 
 self.addEventListener('install', (e) => {
     e.waitUntil(
