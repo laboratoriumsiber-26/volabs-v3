@@ -18,6 +18,10 @@ Master Data Akun.html
 *.swp
 *~
 
+# Dependencies & Build Output
+node_modules/
+dist/
+
 # AI Workspace & Environment
 .gemini/
 .agents/

@@ -33,13 +33,13 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
     // 1. Lewati cache secara mutlak untuk API Google Apps Script & Request Eksternal
-    if (e.request.url.includes('script.google.com') || 
-        e.request.url.includes('exec') || 
+    if (e.request.url.includes('script.google.com') ||
+        e.request.url.includes('exec') ||
         e.request.url.includes('action=') ||
         e.request.method !== 'GET') {
         return;
     }
-    
+
     // 2. Strategi Cache-First (Stale-While-Revalidate) untuk aset statis (Memastikan Lulus Uji Offline WebAPK Oppo/ColorOS)
     e.respondWith(
         caches.match(e.request).then((cachedResponse) => {
@@ -54,7 +54,7 @@ self.addEventListener('fetch', (e) => {
             }).catch(() => {
                 // Abaikan error network saat update background
             });
-            
+
             // Kembalikan dari cache instan (0ms), atau tunggu dari network jika belum ada di cache
             return cachedResponse || fetchPromise;
         })

@@ -65,8 +65,9 @@ volabs-pipd/
 ---
 
 ## 👥 Database Volunteer (Terbaru)
-Sudah terintegrasi penuh di dalam sistem web dan Google Spreadsheet, mencakup volunteer terbaru:
-* **Abdullatif Fuadi** (NIM: `2384110067`) - *Komunikasi dan Penyiaran Islam, FDKI (Semester 6) - Divisi Fotografer/Videografer*.
+Sudah terintegrasi penuh di dalam sistem web dan Google Spreadsheet, mencakup 46 relawan aktif dengan data terbaru:
+* **Aisy Luthfia Dwi Rifani** (NIM: `2481030078`) - *Tadris Bahasa Inggris, FITK (Semester 5) - Divisi Desain Grafis*.
+* **Muthie’ah Umuril Adyan** (NIM: `2481030045`) - *Tadris Bahasa Inggris, FITK (Semester 5) - Divisi Desain Grafis*.
 
 ---
 *© 2026 VoLabs PIPD - Advanced Agentic Coding.*

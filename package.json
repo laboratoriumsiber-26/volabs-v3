@@ -1,0 +1,15 @@
+{
+  "name": "volabs-pipd",
+  "version": "1.0.0",
+  "description": "Platform **Web Application Monolithic (Single Page Application)** untuk pendataan, manajemen absensi geolokasi berserta watermark real-time, dan manajemen rencana konten (Content Plan) dengan arsitektur serverless menggunakan **Google Apps Script (GAS)** dan **Google Spreadsheet**.",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
