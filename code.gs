@@ -1,3 +1,11 @@
+// ============================================================================
+// KONFIGURASI SISTEM VOLABS PIPD - GOOGLE APPS SCRIPT
+// ============================================================================
+// ID Folder Utama Google Drive untuk menyimpan arsip Foto Absensi & Bukti Konten.
+// Contoh URL: https://drive.google.com/drive/folders/1v9zkWjdSlErSNB5DwkRp6oT3u6dc1lFn
+// Jika dikosongkan (""), sistem otomatis membuat folder "VoLABS PIPD" di Google Drive Anda.
+var MAIN_FOLDER_ID = "1v9zkWjdSlErSNB5DwkRp6oT3u6dc1lFn";
+
 function doGet(e) {
   try {
     var action = e.parameter.action;
@@ -949,15 +957,35 @@ function saveAttendance(data) {
   };
 }
 
-var MAIN_FOLDER_ID = "1v9zkWjdSlErSNB5DwkRp6oT3u6dc1lFn";
-
 function getSubFolder(parentFolderId, subFolderName) {
-  var parentFolder = DriveApp.getFolderById(parentFolderId);
+  var parentFolder;
+  if (parentFolderId && String(parentFolderId).trim() !== "") {
+    try {
+      parentFolder = DriveApp.getFolderById(String(parentFolderId).trim());
+    } catch (err) {
+      Logger.log("Folder ID khusus tidak ditemukan / tidak ada akses: " + err.toString());
+      parentFolder = null;
+    }
+  }
+
+  // Fallback otomatis jika folder ID kosong atau tidak valid:
+  if (!parentFolder) {
+    var rootFolders = DriveApp.getRootFolder().getFoldersByName("VoLABS PIPD");
+    if (rootFolders.hasNext()) {
+      parentFolder = rootFolders.next();
+    } else {
+      parentFolder = DriveApp.getRootFolder().createFolder("VoLABS PIPD");
+      parentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    }
+  }
+
   var folders = parentFolder.getFoldersByName(subFolderName);
   if (folders.hasNext()) {
     return folders.next();
   } else {
-    return parentFolder.createFolder(subFolderName);
+    var newSub = parentFolder.createFolder(subFolderName);
+    newSub.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return newSub;
   }
 }
 
@@ -965,8 +993,17 @@ function uploadPhoto(base64Data, nama, dateObj) {
   try {
     var folder = getSubFolder(MAIN_FOLDER_ID, "Absensi");
     
-    var contentType = base64Data.split(',')[0].split(':')[1].split(';')[0];
-    var decodedData = Utilities.base64Decode(base64Data.split(',')[1]);
+    var contentType = "image/jpeg";
+    var rawBase64 = base64Data;
+    if (base64Data.indexOf(",") !== -1) {
+      var parts = base64Data.split(",");
+      rawBase64 = parts[1];
+      var meta = parts[0];
+      if (meta.indexOf(":") !== -1 && meta.indexOf(";") !== -1) {
+        contentType = meta.split(":")[1].split(";")[0];
+      }
+    }
+    var decodedData = Utilities.base64Decode(rawBase64);
     var fileName = "Absen_" + nama.replace(/[^a-zA-Z0-9]/g, "_") + "_" + Utilities.formatDate(dateObj, "GMT+7", "yyyyMMdd_HHmm") + ".jpg";
     
     var blob = Utilities.newBlob(decodedData, contentType, fileName);
@@ -975,6 +1012,7 @@ function uploadPhoto(base64Data, nama, dateObj) {
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     return file.getUrl();
   } catch (err) {
+    Logger.log("Gagal upload foto absen: " + err.toString());
     return "Gagal upload: " + err.toString();
   }
 }
@@ -983,9 +1021,17 @@ function uploadEvidencePhoto(base64Data, judul, dateObj) {
   try {
     var folder = getSubFolder(MAIN_FOLDER_ID, "Foto Bukti Konten");
     
-    var contentType = base64Data.split(',')[0].split(':')[1].split(';')[0];
-    var decodedData = Utilities.base64Decode(base64Data.split(',')[1]);
-    
+    var contentType = "image/jpeg";
+    var rawBase64 = base64Data;
+    if (base64Data.indexOf(",") !== -1) {
+      var parts = base64Data.split(",");
+      rawBase64 = parts[1];
+      var meta = parts[0];
+      if (meta.indexOf(":") !== -1 && meta.indexOf(";") !== -1) {
+        contentType = meta.split(":")[1].split(";")[0];
+      }
+    }
+    var decodedData = Utilities.base64Decode(rawBase64);
     var safeJudul = judul ? judul.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30) : "Konten";
     var fileName = "Bukti_" + safeJudul + "_" + Utilities.formatDate(dateObj, "GMT+7", "yyyyMMdd_HHmmss") + ".jpg";
     
@@ -995,6 +1041,7 @@ function uploadEvidencePhoto(base64Data, judul, dateObj) {
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     return file.getUrl();
   } catch (err) {
+    Logger.log("Gagal upload bukti konten: " + err.toString());
     return "Gagal upload bukti: " + err.toString();
   }
 }
