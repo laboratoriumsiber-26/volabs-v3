@@ -37,11 +37,21 @@ export function applyRBAC() {
         if (sbRole) sbRole.textContent = state.currentUser.role;
 
         const absNamaField = document.getElementById("abs-nama");
+        const isUserAdmin = state.currentUser && (state.currentUser.role === 'Super Admin' || state.currentUser.role === 'Admin' || state.currentUser.role === 'DPL');
         if (absNamaField) {
-            absNamaField.value = state.currentUser.namaLengkap;
-            absNamaField.readOnly = true;
-            absNamaField.style.backgroundColor = 'var(--bg-tertiary)';
-            if (typeof window.handleAbsensiNama === 'function') window.handleAbsensiNama();
+            if (isUserAdmin) {
+                absNamaField.value = '';
+                absNamaField.placeholder = 'Mode Administrator (Monitoring Saja)';
+                absNamaField.readOnly = true;
+                absNamaField.disabled = true;
+                absNamaField.style.backgroundColor = 'var(--bg-tertiary)';
+            } else {
+                absNamaField.value = state.currentUser.namaLengkap;
+                absNamaField.readOnly = true;
+                absNamaField.disabled = false;
+                absNamaField.style.backgroundColor = 'var(--bg-tertiary)';
+                if (typeof window.handleAbsensiNama === 'function') window.handleAbsensiNama();
+            }
         }
         if (typeof window.initJurnalMetaFromUser === 'function') {
             window.initJurnalMetaFromUser();
@@ -124,17 +134,28 @@ export function applyRBAC() {
 
     const filterLaporPic = document.getElementById('filter-lapor-pic');
     if (filterLaporPic) {
-        if (!isAdmin && state.currentUser) {
-            if (!Array.from(filterLaporPic.options).some(opt => opt.value === state.currentUser.namaLengkap)) {
-                let opt = document.createElement('option');
-                opt.value = state.currentUser.namaLengkap;
-                opt.textContent = state.currentUser.namaLengkap;
-                filterLaporPic.appendChild(opt);
+        // Bersihkan opsi Administrator Sistem dari dropdown jika ada
+        Array.from(filterLaporPic.options).forEach(opt => {
+            if (opt.value === 'Administrator Sistem' || opt.value.toLowerCase().includes('admin')) {
+                opt.remove();
             }
-            filterLaporPic.value = state.currentUser.namaLengkap;
-            filterLaporPic.disabled = true;
-            filterLaporPic.style.backgroundColor = 'var(--bg-tertiary)';
+        });
+
+        if (!isAdmin && state.currentUser) {
+            const userFullName = state.currentUser.namaLengkap || '';
+            if (userFullName && userFullName !== 'Administrator Sistem' && !userFullName.toLowerCase().includes('admin')) {
+                if (!Array.from(filterLaporPic.options).some(opt => opt.value === userFullName)) {
+                    let opt = document.createElement('option');
+                    opt.value = userFullName;
+                    opt.textContent = userFullName;
+                    filterLaporPic.appendChild(opt);
+                }
+                filterLaporPic.value = userFullName;
+                filterLaporPic.disabled = true;
+                filterLaporPic.style.backgroundColor = 'var(--bg-tertiary)';
+            }
         } else {
+            filterLaporPic.value = 'Semua PIC';
             filterLaporPic.disabled = false;
             filterLaporPic.style.backgroundColor = 'var(--bg-secondary)';
         }

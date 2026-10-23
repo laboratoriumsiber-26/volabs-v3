@@ -329,18 +329,21 @@ export function initVolunteerData() {
     if (filterPic) filterPic.innerHTML = '<option value="ALL">Semua PIC</option>';
     if (list) list.innerHTML = '';
 
-    Object.keys(dataVolunteer).sort().forEach(nama => {
-        if (list) {
-            let option = document.createElement('option');
-            option.value = nama;
-            list.appendChild(option);
-        }
-        if (filterLaporPic) {
-            let optFilter = document.createElement('option');
-            optFilter.value = nama;
-            optFilter.textContent = nama;
-            filterLaporPic.appendChild(optFilter);
-        }
+    Object.keys(dataVolunteer)
+        .filter(nama => nama !== 'Administrator Sistem' && !nama.toLowerCase().includes('admin'))
+        .sort()
+        .forEach(nama => {
+            if (list) {
+                let option = document.createElement('option');
+                option.value = nama;
+                list.appendChild(option);
+            }
+            if (filterLaporPic) {
+                let optFilter = document.createElement('option');
+                optFilter.value = nama;
+                optFilter.textContent = nama;
+                filterLaporPic.appendChild(optFilter);
+            }
         if (printPic) {
             let optPrint = document.createElement('option');
             optPrint.value = nama;
@@ -733,6 +736,15 @@ export function stopKamera() {
 }
 
 export async function submitAbsensi() {
+    const isUserAdmin = state.currentUser && (state.currentUser.role === 'Super Admin' || state.currentUser.role === 'Admin' || state.currentUser.role === 'DPL');
+    if (isUserAdmin) {
+        return showCustomDialog({
+            title: "Akses Dibatasi",
+            message: "Administrator Sistem hanya bertugas memantau kehadiran relawan dan tidak melakukan absensi.",
+            confirmText: "Mengerti"
+        });
+    }
+
     const btn = document.getElementById("btn-submit-absensi");
     if (!absFotoBase64) return showCustomDialog({ title: "Peringatan", message: "Mohon ambil foto bukti kehadiran!", confirmText: "Mengerti" });
     if (!absLat || !absLon || absLat === "-" || absLon === "-") {
@@ -787,8 +799,14 @@ export function renderTodayAbsensiList(list) {
     const c = document.getElementById("absensi-list-container");
     if (!c) return;
 
-    if (list && list.length > 0) {
-        c.innerHTML = list.map(item => `
+    // Filter out Administrator Sistem dari daftar kehadiran
+    const volunteerList = (list || []).filter(item => {
+        const n = (item.nama || '').trim();
+        return n && n !== 'Administrator Sistem' && !n.toLowerCase().includes('admin');
+    });
+
+    if (volunteerList && volunteerList.length > 0) {
+        c.innerHTML = volunteerList.map(item => `
             <div class="att-card">
                 <img src="${item.foto}" class="att-img" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama || 'Volunteer')}&background=10b981&color=fff'">
                 <div style="flex: 1;">
@@ -810,10 +828,19 @@ export async function loadMonitoring() {
 
 export function renderAbsensi() {
     initVolunteerData();
-    if (state.currentUser) {
-        const absNamaField = document.getElementById("abs-nama");
-        if (absNamaField) {
+    const isUserAdmin = state.currentUser && (state.currentUser.role === 'Super Admin' || state.currentUser.role === 'Admin' || state.currentUser.role === 'DPL');
+    const absNamaField = document.getElementById("abs-nama");
+    if (absNamaField) {
+        if (isUserAdmin) {
+            absNamaField.value = '';
+            absNamaField.placeholder = 'Mode Administrator (Monitoring Saja)';
+            absNamaField.readOnly = true;
+            absNamaField.disabled = true;
+            switchAbsensiTab('monitor');
+        } else if (state.currentUser) {
             absNamaField.value = state.currentUser.namaLengkap;
+            absNamaField.readOnly = true;
+            absNamaField.disabled = false;
             handleAbsensiNama();
         }
     }

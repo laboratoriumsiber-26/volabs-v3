@@ -96,6 +96,11 @@ export function getAllVolunteerActivities() {
 
     // 1. Dari Rencana Konten (Desain, Copywriting, Video, Podcast, Modul, dll)
     (state.contentPlans || []).forEach(c => {
+        const pic = (c.PIC || '').trim();
+        // Skip jika PIC adalah Administrator Sistem
+        if (pic === 'Administrator Sistem' || pic.toLowerCase().includes('admin')) {
+            return;
+        }
         const cleanTgl = cleanDate(c.Tanggal);
         activities.push({
             sourceType: 'content_plan',
@@ -103,7 +108,7 @@ export function getAllVolunteerActivities() {
             tanggal: c.Tanggal,
             cleanTgl: cleanTgl,
             bulan: getBulanFromTanggal(c.Tanggal) || '-',
-            pic: c.PIC || '',
+            pic: pic,
             kolaborator: c["Kolaborator"] || '',
             skp: (c["SKP/KKN"] && c["SKP/KKN"] !== "-") ? c["SKP/KKN"] : "Pembuatan Konten Kreatif",
             judul: c.Judul || 'Tanpa Judul',
@@ -118,6 +123,10 @@ export function getAllVolunteerActivities() {
 
     // 2. Dari Tugas Studio Video / Editing Deliverables
     (state.allEditorTasks || []).forEach(t => {
+        const editor = (t.editor || t.assignedEditor || '').trim();
+        if (editor === 'Administrator Sistem' || editor.toLowerCase().includes('admin')) {
+            return;
+        }
         const taskDate = t.createdAt ? t.createdAt.split('T')[0] : (t.deadline || '');
         const cleanTgl = cleanDate(taskDate);
         const subDesc = t.tipe === 'Video Pembelajaran'
@@ -131,7 +140,7 @@ export function getAllVolunteerActivities() {
             tanggal: taskDate,
             cleanTgl: cleanTgl,
             bulan: getBulanFromTanggal(taskDate) || '-',
-            pic: t.editor || t.assignedEditor || '',
+            pic: editor,
             kolaborator: t.uploader || '',
             skp: 'Editing Video',
             judul: `[${t.tipe || 'Editing Video'}] ${t.judul || 'Tanpa Judul'}`,
@@ -159,19 +168,29 @@ export function getAllVolunteerActivities() {
 export function populateLaporPicFilter() {
     const sel = document.getElementById('filter-lapor-pic');
     const printSel = document.getElementById('print-pic');
-    const names = Object.keys(dataVolunteer).sort((a, b) => a.localeCompare(b));
+    const names = Object.keys(dataVolunteer)
+        .filter(n => n !== 'Administrator Sistem' && !n.toLowerCase().includes('admin'))
+        .sort((a, b) => a.localeCompare(b));
 
-    if (sel && sel.options.length <= 1) {
+    if (sel) {
         const curVal = sel.value || 'Semua PIC';
         sel.innerHTML = '<option value="Semua PIC">-- Semua PIC --</option>' +
             names.map(n => `<option value="${n}">${n}</option>`).join('');
-        sel.value = curVal;
+        if (curVal && curVal !== 'Administrator Sistem' && !curVal.toLowerCase().includes('admin')) {
+            sel.value = curVal;
+        } else {
+            sel.value = 'Semua PIC';
+        }
     }
-    if (printSel && printSel.options.length <= 1) {
+    if (printSel) {
         const curVal = printSel.value || 'Semua PIC';
         printSel.innerHTML = '<option value="Semua PIC">-- Seluruh Volunteer (Kompilasi) --</option>' +
             names.map(n => `<option value="${n}">${n}</option>`).join('');
-        printSel.value = curVal;
+        if (curVal && curVal !== 'Administrator Sistem' && !curVal.toLowerCase().includes('admin')) {
+            printSel.value = curVal;
+        } else {
+            printSel.value = 'Semua PIC';
+        }
     }
 }
 

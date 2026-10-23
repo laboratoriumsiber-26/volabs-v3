@@ -887,7 +887,8 @@ export function initKonten() {
                         itemData["Kolaborator"] = onlyCollabs.join(', ');
                     }
                 } else if (!isEdit) {
-                    itemData.PIC = state.currentUser.namaLengkap;
+                    const firstVolunteer = Object.keys(dataVolunteer).filter(v => v !== 'Administrator Sistem' && !v.toLowerCase().includes('admin')).sort()[0] || '-';
+                    itemData.PIC = firstVolunteer;
                     itemData["Kolaborator"] = "";
                 }
             } else if (!isEdit) {
@@ -902,7 +903,10 @@ export function initKonten() {
                 }
             } else {
                 itemData.ID = "CP-" + Date.now();
-                if (!itemData.PIC) itemData.PIC = state.currentUser.namaLengkap;
+                if (!itemData.PIC || itemData.PIC === 'Administrator Sistem' || itemData.PIC.toLowerCase().includes('admin')) {
+                    const firstVolunteer = Object.keys(dataVolunteer).filter(v => v !== 'Administrator Sistem' && !v.toLowerCase().includes('admin')).sort()[0] || '-';
+                    itemData.PIC = isSuperOrAdmin ? firstVolunteer : (state.currentUser?.namaLengkap || firstVolunteer);
+                }
                 itemData.createdAt = new Date().toISOString();
             }
             itemData.updatedAt = new Date().toISOString();
@@ -916,16 +920,19 @@ export function initKonten() {
         });
     }
 
-    // Populate PIC filter dropdown with all volunteers alphabetically
+    // Populate PIC filter dropdown with all volunteers alphabetically (tanpa Administrator Sistem)
     const picSelect = document.getElementById('filter-pic');
     if (picSelect) {
         picSelect.innerHTML = '<option value="ALL">Semua PIC</option>';
-        Object.keys(dataVolunteer).sort((a, b) => a.localeCompare(b)).forEach(vName => {
-            const opt = document.createElement('option');
-            opt.value = vName;
-            opt.textContent = vName;
-            picSelect.appendChild(opt);
-        });
+        Object.keys(dataVolunteer)
+            .filter(vName => vName !== 'Administrator Sistem' && !vName.toLowerCase().includes('admin'))
+            .sort((a, b) => a.localeCompare(b))
+            .forEach(vName => {
+                const opt = document.createElement('option');
+                opt.value = vName;
+                opt.textContent = vName;
+                picSelect.appendChild(opt);
+            });
     }
 
     ['filter-month', 'filter-sort', 'filter-platform', 'filter-pillar', 'filter-status', 'filter-pic'].forEach(id => {
