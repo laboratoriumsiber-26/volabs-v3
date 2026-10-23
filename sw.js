@@ -1,12 +1,12 @@
 // VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v5';
+const CACHE_NAME = 'volabs-pipd-cache-v6';
 const ASSETS_TO_CACHE = [
-    './',
-    './index.html',
-    './manifest.json',
-    './icon-192.png',
-    './icon-512.png',
-    './logo.png'
+    '/',
+    '/index.html',
+    '/manifest.json',
+    '/icon-192.png',
+    '/icon-512.png',
+    '/logo.png'
 ];
 
 self.addEventListener('install', (e) => {
@@ -32,15 +32,27 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-    // 1. Lewati cache secara mutlak untuk API Google Apps Script & Request Eksternal
+    // 1. Lewati cache secara mutlak untuk API Google Apps Script, Firebase & Request Eksternal
     if (e.request.url.includes('script.google.com') ||
         e.request.url.includes('exec') ||
         e.request.url.includes('action=') ||
+        e.request.url.includes('firestore.googleapis.com') ||
         e.request.method !== 'GET') {
         return;
     }
 
-    // 2. Strategi Cache-First (Stale-While-Revalidate) untuk aset statis (Memastikan Lulus Uji Offline WebAPK Oppo/ColorOS)
+    // 2. Navigation fallback untuk SPA (Ketika refresh di route /jurnal, /absensi, dll.)
+    if (e.request.mode === 'navigate') {
+        e.respondWith(
+            fetch(e.request).catch(async () => {
+                const cache = await caches.open(CACHE_NAME);
+                return (await cache.match('/index.html')) || (await cache.match('./index.html'));
+            })
+        );
+        return;
+    }
+
+    // 3. Strategi Cache-First (Stale-While-Revalidate) untuk aset statis (Memastikan Lulus Uji Offline WebAPK Oppo/ColorOS)
     e.respondWith(
         caches.match(e.request).then((cachedResponse) => {
             const fetchPromise = fetch(e.request).then((networkResponse) => {
