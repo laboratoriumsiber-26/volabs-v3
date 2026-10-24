@@ -1,19 +1,14 @@
 /**
  * ============================================================================
- * VOLABS PIPD - GOOGLE DRIVE STORAGE PRESENSI (PURE GOOGLE DRIVE API)
+ * VOLABS PIPD - ZERO-CONFIG GOOGLE DRIVE PHOTO STORAGE (PER-VOLUNTEER FOLDER)
  * ============================================================================
- * Script ini MURNI HANYA untuk:
- * - Menerima foto bukti presensi (Base64) dari aplikasi web VoLABS PIPD.
- * - Menyimpan berkas foto .jpg ke Folder Google Drive.
- * - Mengembalikan link/URL foto Google Drive publik.
- * (Tidak menggunakan Spreadsheet sama sekali, database penuh di Cloud Firestore)
+ * Fitur 100% Otomatis (Tanpa Perlu Setup Google Drive Manual):
+ * - Otomatis membuat folder utama "VoLABS PIPD - Absensi" di Google Drive.
+ * - Otomatis membuat subfolder khusus sesuai NAMA masing-masing volunteer.
+ * - Menyimpan berkas foto absen langsung ke dalam folder nama volunteer tersebut.
+ * - Tanpa Spreadsheet & tanpa perlu copy-paste ID folder apa pun.
  * ============================================================================
  */
-
-// ID Folder Google Drive untuk menyimpan foto absen.
-// Contoh URL Folder: https://drive.google.com/drive/folders/1v9zkWjdSlErSNB5DwkRp6oT3u6dc1lFn
-// Jika dikosongkan (""), script otomatis membuat folder "VoLABS PIPD - Arsip Absensi" di Drive Anda.
-var FOLDER_ID = "1v9zkWjdSlErSNB5DwkRp6oT3u6dc1lFn";
 
 /**
  * Endpoint GET - Digunakan untuk tes koneksi Web App
@@ -21,13 +16,13 @@ var FOLDER_ID = "1v9zkWjdSlErSNB5DwkRp6oT3u6dc1lFn";
 function doGet(e) {
   return outputJson({
     status: "active",
-    service: "VoLABS PIPD Google Drive Photo Storage",
+    service: "VoLABS PIPD Auto-Folder Drive Storage",
     timestamp: new Date().toISOString()
   });
 }
 
 /**
- * Endpoint POST - Menerima foto & menyimpan langsung ke Google Drive
+ * Endpoint POST - Menerima foto & otomatis membuatkan folder sesuai nama volunteer
  */
 function doPost(e) {
   try {
@@ -42,7 +37,6 @@ function doPost(e) {
       payload = e.parameter;
     }
 
-    // Ambil data foto dari payload
     var data = payload.data || payload;
 
     if (!data.foto || typeof data.foto !== "string" || data.foto.length < 50) {
@@ -52,10 +46,12 @@ function doPost(e) {
       });
     }
 
-    var result = uploadPhotoToDrive(data.foto, data.nama || "Volunteer");
+    var namaVolunteer = (data.nama || "Volunteer").trim();
+    var result = uploadPhotoToVolunteerFolder(data.foto, namaVolunteer);
+
     return outputJson({
       status: "success",
-      message: "Foto berhasil disimpan ke Google Drive",
+      message: "Foto berhasil disimpan ke folder " + namaVolunteer,
       data: result
     });
 
@@ -68,13 +64,14 @@ function doPost(e) {
 }
 
 /**
- * Mengunggah data base64 foto ke Google Drive
+ * Otomatis mencari atau membuat folder per-volunteer, lalu mengunggah foto
  */
-function uploadPhotoToDrive(base64Data, nama) {
-  var folder = getDriveFolder();
+function uploadPhotoToVolunteerFolder(base64Data, namaVolunteer) {
+  // 1. Dapatkan atau otomatis buat folder khusus untuk volunteer tersebut
+  var userFolder = getOrCreateVolunteerFolder(namaVolunteer);
   var dateObj = new Date();
 
-  // Parsing data base64 (mendukung data:image/jpeg;base64,... maupun raw base64)
+  // 2. Parsing format base64 foto
   var contentType = "image/jpeg";
   var rawBase64 = base64Data;
   if (base64Data.indexOf(",") !== -1) {
@@ -87,51 +84,60 @@ function uploadPhotoToDrive(base64Data, nama) {
   }
 
   var decodedData = Utilities.base64Decode(rawBase64);
-  var safeName = (nama || "Volunteer").replace(/[^a-zA-Z0-9]/g, "_");
   var timestampStr = Utilities.formatDate(dateObj, "GMT+7", "yyyyMMdd_HHmmss");
+  var safeName = namaVolunteer.replace(/[^a-zA-Z0-9]/g, "_");
   var fileName = "Absen_" + safeName + "_" + timestampStr + ".jpg";
 
   var blob = Utilities.newBlob(decodedData, contentType, fileName);
-  var file = folder.createFile(blob);
+  var file = userFolder.createFile(blob);
 
-  // Atur akses agar foto dapat dilihat publik melalui link
+  // Atur akses agar foto dapat dibuka melalui tautan
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
   return {
     fileId: file.getId(),
     fileName: fileName,
     fileUrl: file.getUrl(),
+    folderName: namaVolunteer,
     uploadedAt: Utilities.formatDate(dateObj, "GMT+7", "yyyy-MM-dd HH:mm:ss")
   };
 }
 
 /**
- * Mengambil folder target di Google Drive dengan auto-fallback
+ * Struktur Hirarki Folder Otomatis di Google Drive:
+ * Google Drive Saya
+ *   └── VoLABS PIPD - Absensi
+ *         ├── [Nama Volunteer 1]
+ *         │     └── Absen_[Nama]_20261025_083015.jpg
+ *         ├── [Nama Volunteer 2]
+ *         └── [Nama Volunteer 3]
  */
-function getDriveFolder() {
-  var folder = null;
-  if (FOLDER_ID && String(FOLDER_ID).trim() !== "") {
-    try {
-      folder = DriveApp.getFolderById(String(FOLDER_ID).trim());
-    } catch (err) {
-      Logger.log("Folder ID khusus tidak ditemukan / tidak ada izin: " + err.toString());
-      folder = null;
-    }
+function getOrCreateVolunteerFolder(namaVolunteer) {
+  var root = DriveApp.getRootFolder();
+  var mainFolderName = "VoLABS PIPD - Absensi";
+
+  // 1. Cari atau buat folder utama "VoLABS PIPD - Absensi" di root Drive
+  var mainFolder;
+  var mainFolders = root.getFoldersByName(mainFolderName);
+  if (mainFolders.hasNext()) {
+    mainFolder = mainFolders.next();
+  } else {
+    mainFolder = root.createFolder(mainFolderName);
+    mainFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   }
 
-  // Jika FOLDER_ID kosong atau tidak ditemukan, otomatis buat di Google Drive utama
-  if (!folder) {
-    var folderName = "VoLABS PIPD - Arsip Absensi";
-    var existingFolders = DriveApp.getRootFolder().getFoldersByName(folderName);
-    if (existingFolders.hasNext()) {
-      folder = existingFolders.next();
-    } else {
-      folder = DriveApp.getRootFolder().createFolder(folderName);
-      folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    }
+  // 2. Cari atau buat subfolder khusus atas nama volunteer
+  var cleanNama = (namaVolunteer || "Volunteer Lainnya").trim();
+  var userFolder;
+  var userFolders = mainFolder.getFoldersByName(cleanNama);
+  if (userFolders.hasNext()) {
+    userFolder = userFolders.next();
+  } else {
+    userFolder = mainFolder.createFolder(cleanNama);
+    userFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   }
 
-  return folder;
+  return userFolder;
 }
 
 /**
