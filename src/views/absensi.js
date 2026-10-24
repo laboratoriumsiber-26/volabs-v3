@@ -850,8 +850,8 @@ export function renderTodayAbsensiList(list) {
 export async function handleDeleteAbsensi(id, nama) {
     if (!window.showCustomDialog) return;
     const confirmed = await window.showCustomDialog({
-        title: "Hapus Riwayat Presensi",
-        message: `Apakah Anda yakin ingin menghapus data presensi milik <b>${nama}</b>?<br><br><span style="color:#ef4444; font-size:12px;">Data presensi di Cloud Firestore dan foto di Google Drive akan dihapus secara permanen.</span>`,
+        title: "Hapus Presensi",
+        message: `Apakah Anda yakin ingin menghapus data presensi milik <b>${nama}</b>?`,
         confirmText: "Ya, Hapus",
         confirmColor: "#ef4444"
     });

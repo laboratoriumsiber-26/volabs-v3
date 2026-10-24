@@ -1,5 +1,5 @@
 // VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v12';
+const CACHE_NAME = 'volabs-pipd-cache-v13';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
