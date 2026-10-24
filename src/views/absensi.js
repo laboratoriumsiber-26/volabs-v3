@@ -675,7 +675,7 @@ export function jepretFoto() {
 
     ctx.restore();
 
-    absFotoBase64 = canvas.toDataURL("image/png");
+    absFotoBase64 = canvas.toDataURL("image/jpeg", 0.75);
     if (absPhoto) {
         absPhoto.src = absFotoBase64;
         absPhoto.style.display = "block";
@@ -806,23 +806,35 @@ export function renderTodayAbsensiList(list) {
     });
 
     if (volunteerList && volunteerList.length > 0) {
-        c.innerHTML = volunteerList.map(item => `
-            <div class="att-card">
-                <img src="${item.foto}" class="att-img" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama || 'Volunteer')}&background=10b981&color=fff'">
-                <div style="flex: 1;">
-                    <div style="font-weight:700; font-size:15px; margin-bottom:4px;">${item.nama} <span style="font-size:11px; float:right; background:rgba(16,185,129,0.1); color:#10b981; padding:2px 8px; border-radius:12px;">${item.waktu || '-'}</span></div>
-                    <div style="font-size:12px; color:var(--primary); font-weight:600; margin-bottom:4px;">${item.divisi || item.jabatan || '-'}</div>
-                    <div style="font-size:13px; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${item.notulensi || '-'}</div>
+        c.innerHTML = volunteerList.map(item => {
+            const timeStr = item.waktu || (item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-');
+            const dateStr = item.tanggal ? ` (${item.tanggal})` : '';
+            return `
+            <div class="att-card" style="display:flex; gap:12px; align-items:flex-start; padding:12px; background:var(--bg-secondary); border-radius:10px; margin-bottom:10px; border:1px solid var(--border-color);">
+                <img src="${item.foto}" class="att-img" style="width:58px; height:58px; border-radius:8px; object-fit:cover; flex-shrink:0; cursor:pointer;" onclick="if(window.showCustomDialog) window.showCustomDialog({title:'Foto Bukti Presensi', message:'<div style=\\'text-align:center\\'><img src=\\'${item.foto}\\' style=\\'max-width:100%; max-height:60vh; border-radius:8px; object-fit:contain;\\'></div>', confirmText:'Tutup'})" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama || 'Volunteer')}&background=10b981&color=fff'">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight:700; font-size:14.5px; margin-bottom:2px; display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-main);">${item.nama}</span>
+                        <span style="font-size:11px; flex-shrink:0; background:rgba(16,185,129,0.12); color:#10b981; font-weight:600; padding:2px 8px; border-radius:12px;">${timeStr}</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--primary); font-weight:600; margin-bottom:4px;">${item.divisi || item.jabatan || 'Volunteer PIPD'}${dateStr}</div>
+                    ${item.lokasi && item.lokasi !== '-' ? `
+                    <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:4px; display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:12px; height:12px; flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${item.lokasi}">${item.lokasi}</span>
+                    </div>` : ''}
+                    <div style="font-size:12.5px; color:var(--text-main); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;">${item.notulensi || '-'}</div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     } else {
         c.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">Belum ada data absensi hari ini.</div>`;
     }
 }
 
 export async function loadMonitoring() {
-    const list = await getAbsensiList();
+    const list = await getAbsensiList(true);
     renderTodayAbsensiList(list);
 }
 

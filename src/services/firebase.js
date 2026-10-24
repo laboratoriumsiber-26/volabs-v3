@@ -139,13 +139,18 @@ export function setupFirebaseListeners() {
         }, (err) => console.log("Firestore studio tasks notice:", err));
 
         // 5. Sinkronisasi Real-time Absensi
-        db.collection('absensi').orderBy('timestamp', 'desc').limit(100).onSnapshot((snapshot) => {
+        db.collection('absensi').onSnapshot((snapshot) => {
             const list = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if (!String(doc.id).toLowerCase().includes('dummy') && !String(data.nama || '').toLowerCase().includes('dummy')) {
                     list.push({ id: doc.id, ...data });
                 }
+            });
+            list.sort((a, b) => {
+                const timeA = typeof a.timestamp === 'number' ? a.timestamp : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+                const timeB = typeof b.timestamp === 'number' ? b.timestamp : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+                return timeB - timeA;
             });
             state.absensiList = list;
             window.todayAbsensiList = list;
@@ -316,7 +321,7 @@ export async function saveAbsensiEntry(data) {
         notulensi: data.notulensi || '',
         waktu: data.waktu || now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB',
         tanggal: data.tanggal || now.toISOString().split('T')[0],
-        timestamp: firebase?.firestore?.FieldValue ? firebase.firestore.FieldValue.serverTimestamp() : now.getTime(),
+        timestamp: now.getTime(),
         createdAt: now.toISOString()
     };
 
@@ -338,16 +343,26 @@ export async function saveAbsensiEntry(data) {
     return fullEntry;
 }
 
-export async function getAbsensiList() {
-    if (state.absensiList && state.absensiList.length > 0) {
+export async function getAbsensiList(force = false) {
+    if (!force && state.absensiList && state.absensiList.length > 0) {
         return state.absensiList;
     }
     if (db) {
         try {
-            const snap = await db.collection('absensi').orderBy('timestamp', 'desc').limit(100).get();
+            const snap = await db.collection('absensi').get();
             if (!snap.empty) {
                 const list = [];
-                snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if (!String(doc.id).toLowerCase().includes('dummy') && !String(d.nama || '').toLowerCase().includes('dummy')) {
+                        list.push({ id: doc.id, ...d });
+                    }
+                });
+                list.sort((a, b) => {
+                    const timeA = typeof a.timestamp === 'number' ? a.timestamp : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+                    const timeB = typeof b.timestamp === 'number' ? b.timestamp : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+                    return timeB - timeA;
+                });
                 state.absensiList = list;
                 window.todayAbsensiList = list;
                 localStorage.setItem('volabs_cached_absensi', JSON.stringify(list));

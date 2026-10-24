@@ -1,7 +1,7 @@
 // Google Apps Script API Service
 import { CONFIG } from '../store/initialData.js';
 
-export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1LzNKCIS4fdkHWgl78hRVQ8_MLzuYn6n_4XPJv7RHBDy_noRIeFHZUV1QzBzrKAaz/exec";
+export const APPS_SCRIPT_URL = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbzy_QmZlwOgmpsCgMPRT-3HDl_UrOBxT0YT_YVDTstQoI_3xKfPZFQY-G7WEYkxAgM2/exec";
 
 export class ApiService {
     constructor() {
