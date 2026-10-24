@@ -2,7 +2,7 @@
 import { state } from '../store/state.js';
 import { dataVolunteer } from '../store/initialData.js';
 import { api } from '../services/api.js';
-import { db, saveAbsensiEntry, getAbsensiList } from '../services/firebase.js';
+import { db, saveAbsensiEntry, getAbsensiList, deleteAbsensiEntry } from '../services/firebase.js';
 import { showCustomDialog } from '../utils/dialog.js';
 import { getSkeletonAttendance } from '../utils/skeleton.js';
 
@@ -805,6 +805,8 @@ export function renderTodayAbsensiList(list) {
         return n && n !== 'Administrator Sistem' && !n.toLowerCase().includes('admin');
     });
 
+    const isUserAdmin = state.currentUser && (state.currentUser.role === 'Super Admin' || state.currentUser.role === 'Admin' || state.currentUser.role === 'DPL');
+
     if (volunteerList && volunteerList.length > 0) {
         c.innerHTML = volunteerList.map(item => {
             const timeStr = item.waktu || (item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-');
@@ -813,9 +815,17 @@ export function renderTodayAbsensiList(list) {
             <div class="att-card" style="display:flex; gap:12px; align-items:flex-start; padding:12px; background:var(--bg-secondary); border-radius:10px; margin-bottom:10px; border:1px solid var(--border-color);">
                 <img src="${item.foto}" class="att-img" style="width:58px; height:58px; border-radius:8px; object-fit:cover; flex-shrink:0; cursor:pointer;" onclick="if(window.showCustomDialog) window.showCustomDialog({title:'Foto Bukti Presensi', message:'<div style=\\'text-align:center\\'><img src=\\'${item.foto}\\' style=\\'max-width:100%; max-height:60vh; border-radius:8px; object-fit:contain;\\'></div>', confirmText:'Tutup'})" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama || 'Volunteer')}&background=10b981&color=fff'">
                 <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight:700; font-size:14.5px; margin-bottom:2px; display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+                    <div style="font-weight:700; font-size:14.5px; margin-bottom:2px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
                         <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-main);">${item.nama}</span>
-                        <span style="font-size:11px; flex-shrink:0; background:rgba(16,185,129,0.12); color:#10b981; font-weight:600; padding:2px 8px; border-radius:12px;">${timeStr}</span>
+                        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                            <span style="font-size:11px; background:rgba(16,185,129,0.12); color:#10b981; font-weight:600; padding:2px 8px; border-radius:12px;">${timeStr}</span>
+                            ${isUserAdmin ? `
+                            <button type="button" class="btn-card-action" onclick="handleDeleteAbsensi('${item.id}', '${(item.nama || 'Volunteer').replace(/'/g, "\\'")}')" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; border-radius:6px; padding:2px 7px; font-size:11px; display:inline-flex; align-items:center; gap:3px; cursor:pointer;" title="Hapus Data Presensi Ini">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:11px; height:11px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <span>Hapus</span>
+                            </button>
+                            ` : ''}
+                        </div>
                     </div>
                     <div style="font-size:12px; color:var(--primary); font-weight:600; margin-bottom:4px;">${item.divisi || item.jabatan || 'Volunteer PIPD'}${dateStr}</div>
                     ${item.lokasi && item.lokasi !== '-' ? `
@@ -831,6 +841,25 @@ export function renderTodayAbsensiList(list) {
     } else {
         c.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">Belum ada data absensi hari ini.</div>`;
     }
+}
+
+export function handleDeleteAbsensi(id, nama) {
+    if (!window.showCustomDialog) return;
+    window.showCustomDialog({
+        title: "Hapus Riwayat Presensi",
+        message: `Apakah Anda yakin ingin menghapus data presensi milik <b>${nama}</b>?<br><br><span style="color:#ef4444; font-size:12px;">Data akan dihapus permanen dari server dan riwayat kehadiran.</span>`,
+        confirmText: "Ya, Hapus",
+        cancelText: "Batal",
+        onConfirm: async () => {
+            await deleteAbsensiEntry(id);
+            if (typeof renderTodayAbsensiList === 'function') {
+                renderTodayAbsensiList(state.absensiList);
+            }
+            if (typeof window.renderDashboard === 'function') {
+                window.renderDashboard();
+            }
+        }
+    });
 }
 
 export async function loadMonitoring() {
@@ -869,6 +898,7 @@ export function initAbsensi() {
     window.loadMonitoring = loadMonitoring;
     window.renderTodayAbsensiList = renderTodayAbsensiList;
     window.handleAbsensiNama = handleAbsensiNama;
+    window.handleDeleteAbsensi = handleDeleteAbsensi;
     window.renderAbsensi = renderAbsensi;
 
     initVolunteerData();

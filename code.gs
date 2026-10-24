@@ -1,12 +1,12 @@
 /**
  * ============================================================================
- * VOLABS PIPD - ZERO-CONFIG GOOGLE DRIVE PHOTO STORAGE (PER-VOLUNTEER FOLDER)
+ * VOLABS PIPD - ZERO-CONFIG GOOGLE DRIVE PHOTO STORAGE
  * ============================================================================
- * Fitur 100% Otomatis (Tanpa Perlu Setup Google Drive Manual):
- * - Otomatis membuat folder utama "VoLABS PIPD - Absensi" di Google Drive.
- * - Otomatis membuat subfolder khusus sesuai NAMA masing-masing volunteer.
- * - Menyimpan berkas foto absen langsung ke dalam folder nama volunteer tersebut.
- * - Tanpa Spreadsheet & tanpa perlu copy-paste ID folder apa pun.
+ * Script ini MURNI HANYA untuk:
+ * - Menyimpan berkas foto .jpg bukti presensi ke Google Drive.
+ * - Otomatis membuat folder utama "VoLABS PIPD - Absensi" & subfolder nama volunteer.
+ * - Mengembalikan URL foto Google Drive publik.
+ * (Seluruh database presensi, data absensi, dan sinkronisasi dikelola Firebase)
  * ============================================================================
  */
 
@@ -16,13 +16,13 @@
 function doGet(e) {
   return outputJson({
     status: "active",
-    service: "VoLABS PIPD Auto-Folder Drive Storage",
+    service: "VoLABS PIPD Google Drive Photo Storage",
     timestamp: new Date().toISOString()
   });
 }
 
 /**
- * Endpoint POST - Menerima foto & otomatis membuatkan folder sesuai nama volunteer
+ * Endpoint POST - Menerima foto & menyimpan ke folder nama volunteer di Google Drive
  */
 function doPost(e) {
   try {
@@ -51,7 +51,7 @@ function doPost(e) {
 
     return outputJson({
       status: "success",
-      message: "Foto berhasil disimpan ke folder " + namaVolunteer,
+      message: "Foto berhasil disimpan ke Google Drive",
       data: result
     });
 
@@ -64,14 +64,31 @@ function doPost(e) {
 }
 
 /**
- * Otomatis mencari atau membuat folder per-volunteer, lalu mengunggah foto
+ * Otomatis mencari atau membuat folder per-volunteer di Drive, lalu mengunggah foto
  */
 function uploadPhotoToVolunteerFolder(base64Data, namaVolunteer) {
-  // 1. Dapatkan atau otomatis buat folder khusus untuk volunteer tersebut
-  var userFolder = getOrCreateVolunteerFolder(namaVolunteer);
-  var dateObj = new Date();
+  var root = DriveApp.getRootFolder();
+  var mainFolderName = "VoLABS PIPD - Absensi";
+  var mainFolder;
+  var mainFolders = root.getFoldersByName(mainFolderName);
+  if (mainFolders.hasNext()) {
+    mainFolder = mainFolders.next();
+  } else {
+    mainFolder = root.createFolder(mainFolderName);
+    mainFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  }
 
-  // 2. Parsing format base64 foto
+  var cleanNama = (namaVolunteer || "Volunteer Lainnya").trim();
+  var userFolder;
+  var userFolders = mainFolder.getFoldersByName(cleanNama);
+  if (userFolders.hasNext()) {
+    userFolder = userFolders.next();
+  } else {
+    userFolder = mainFolder.createFolder(cleanNama);
+    userFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  }
+
+  var dateObj = new Date();
   var contentType = "image/jpeg";
   var rawBase64 = base64Data;
   if (base64Data.indexOf(",") !== -1) {
@@ -85,59 +102,19 @@ function uploadPhotoToVolunteerFolder(base64Data, namaVolunteer) {
 
   var decodedData = Utilities.base64Decode(rawBase64);
   var timestampStr = Utilities.formatDate(dateObj, "GMT+7", "yyyyMMdd_HHmmss");
-  var safeName = namaVolunteer.replace(/[^a-zA-Z0-9]/g, "_");
+  var safeName = cleanNama.replace(/[^a-zA-Z0-9]/g, "_");
   var fileName = "Absen_" + safeName + "_" + timestampStr + ".jpg";
 
   var blob = Utilities.newBlob(decodedData, contentType, fileName);
   var file = userFolder.createFile(blob);
-
-  // Atur akses agar foto dapat dibuka melalui tautan
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
   return {
     fileId: file.getId(),
     fileName: fileName,
     fileUrl: file.getUrl(),
-    folderName: namaVolunteer,
     uploadedAt: Utilities.formatDate(dateObj, "GMT+7", "yyyy-MM-dd HH:mm:ss")
   };
-}
-
-/**
- * Struktur Hirarki Folder Otomatis di Google Drive:
- * Google Drive Saya
- *   └── VoLABS PIPD - Absensi
- *         ├── [Nama Volunteer 1]
- *         │     └── Absen_[Nama]_20261025_083015.jpg
- *         ├── [Nama Volunteer 2]
- *         └── [Nama Volunteer 3]
- */
-function getOrCreateVolunteerFolder(namaVolunteer) {
-  var root = DriveApp.getRootFolder();
-  var mainFolderName = "VoLABS PIPD - Absensi";
-
-  // 1. Cari atau buat folder utama "VoLABS PIPD - Absensi" di root Drive
-  var mainFolder;
-  var mainFolders = root.getFoldersByName(mainFolderName);
-  if (mainFolders.hasNext()) {
-    mainFolder = mainFolders.next();
-  } else {
-    mainFolder = root.createFolder(mainFolderName);
-    mainFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  }
-
-  // 2. Cari atau buat subfolder khusus atas nama volunteer
-  var cleanNama = (namaVolunteer || "Volunteer Lainnya").trim();
-  var userFolder;
-  var userFolders = mainFolder.getFoldersByName(cleanNama);
-  if (userFolders.hasNext()) {
-    userFolder = userFolders.next();
-  } else {
-    userFolder = mainFolder.createFolder(cleanNama);
-    userFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  }
-
-  return userFolder;
 }
 
 /**

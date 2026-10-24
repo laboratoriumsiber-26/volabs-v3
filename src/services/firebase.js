@@ -344,42 +344,93 @@ export async function saveAbsensiEntry(data) {
 }
 
 export async function getAbsensiList(force = false) {
-    if (!force && state.absensiList && state.absensiList.length > 0) {
-        return state.absensiList;
-    }
+    let list = [];
+
+    // 1. Coba ambil dari Firestore
     if (db) {
         try {
             const snap = await db.collection('absensi').get();
             if (!snap.empty) {
-                const list = [];
                 snap.forEach(doc => {
                     const d = doc.data();
                     if (!String(doc.id).toLowerCase().includes('dummy') && !String(d.nama || '').toLowerCase().includes('dummy')) {
                         list.push({ id: doc.id, ...d });
                     }
                 });
-                list.sort((a, b) => {
-                    const timeA = typeof a.timestamp === 'number' ? a.timestamp : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-                    const timeB = typeof b.timestamp === 'number' ? b.timestamp : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-                    return timeB - timeA;
-                });
-                state.absensiList = list;
-                window.todayAbsensiList = list;
-                localStorage.setItem('volabs_cached_absensi', JSON.stringify(list));
-                return list;
             }
         } catch (err) {
-            console.warn("Firestore getAbsensiList warning:", err);
+            console.warn("Firestore getAbsensiList notice (check Firestore rules):", err);
         }
     }
-    try {
-        const cached = JSON.parse(localStorage.getItem('volabs_cached_absensi') || '[]');
-        state.absensiList = cached;
-        window.todayAbsensiList = cached;
-        return cached;
-    } catch (e) {
-        return [];
+
+    // 2. Jika Firestore kosong atau permission denied, ambil langsung dari GAS Google Drive
+    if (list.length === 0) {
+        try {
+            const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbzy_QmZlwOgmpsCgMPRT-3HDl_UrOBxT0YT_YVDTstQoI_3xKfPZFQY-G7WEYkxAgM2/exec";
+            const res = await fetch(`${gasUrl}?action=get_absensi&t=${Date.now()}`);
+            const json = await res.json();
+            if (json && json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
+                list = json.data;
+            }
+        } catch (gasErr) {
+            console.warn("GAS Google Drive absensi fetch notice:", gasErr);
+        }
     }
+
+    // 3. Fallback ke local cache jika offline
+    if (list.length === 0) {
+        try {
+            list = JSON.parse(localStorage.getItem('volabs_cached_absensi') || '[]');
+        } catch (e) {
+            list = [];
+        }
+    }
+
+    // Sort newest first
+    list.sort((a, b) => {
+        const timeA = typeof a.timestamp === 'number' ? a.timestamp : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        const timeB = typeof b.timestamp === 'number' ? b.timestamp : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+        return timeB - timeA;
+    });
+
+    state.absensiList = list;
+    window.todayAbsensiList = list;
+    localStorage.setItem('volabs_cached_absensi', JSON.stringify(list));
+    return list;
+}
+
+export async function deleteAbsensiEntry(id) {
+    if (!id) return false;
+    const targetId = String(id).trim();
+
+    // 1. Update local cache immediately
+    const currentList = state.absensiList || [];
+    const updated = currentList.filter(item => String(item.id).trim() !== targetId);
+    state.absensiList = updated;
+    window.todayAbsensiList = updated;
+    localStorage.setItem('volabs_cached_absensi', JSON.stringify(updated));
+
+    // 2. Delete from Firestore
+    if (db) {
+        try {
+            await db.collection('absensi').doc(targetId).delete();
+        } catch (err) {
+            console.warn("Firestore deleteAbsensiEntry notice:", err);
+        }
+    }
+
+    // 3. Delete from Google Drive via GAS
+    try {
+        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbzy_QmZlwOgmpsCgMPRT-3HDl_UrOBxT0YT_YVDTstQoI_3xKfPZFQY-G7WEYkxAgM2/exec";
+        fetch(gasUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "delete_absensi", id: targetId })
+        }).catch(() => {});
+    } catch (e) {}
+
+    return true;
 }
 
 // --- Jurnal KKN ---
