@@ -366,7 +366,7 @@ export async function getAbsensiList(force = false) {
     // 2. Jika Firestore kosong atau permission denied, ambil langsung dari GAS Google Drive
     if (list.length === 0) {
         try {
-            const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbzy_QmZlwOgmpsCgMPRT-3HDl_UrOBxT0YT_YVDTstQoI_3xKfPZFQY-G7WEYkxAgM2/exec";
+            const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbxTVy068opG0Qy-XgDg4s36yu2HO-TRS3G8e3iDD8m57pKMbCtE2NhEOyoazTbjNf4B/exec";
             const res = await fetch(`${gasUrl}?action=get_absensi&t=${Date.now()}`);
             const json = await res.json();
             if (json && json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
@@ -405,6 +405,7 @@ export async function deleteAbsensiEntry(id) {
 
     // 1. Update local cache immediately
     const currentList = state.absensiList || [];
+    const itemToDelete = currentList.find(item => String(item.id).trim() === targetId);
     const updated = currentList.filter(item => String(item.id).trim() !== targetId);
     state.absensiList = updated;
     window.todayAbsensiList = updated;
@@ -421,13 +422,22 @@ export async function deleteAbsensiEntry(id) {
 
     // 3. Delete from Google Drive via GAS
     try {
-        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbzy_QmZlwOgmpsCgMPRT-3HDl_UrOBxT0YT_YVDTstQoI_3xKfPZFQY-G7WEYkxAgM2/exec";
+        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbxTVy068opG0Qy-XgDg4s36yu2HO-TRS3G8e3iDD8m57pKMbCtE2NhEOyoazTbjNf4B/exec";
         fetch(gasUrl, {
             method: "POST",
             mode: "no-cors",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "delete_absensi", id: targetId })
-        }).catch(() => {});
+            body: JSON.stringify({
+                action: "delete_absensi",
+                id: targetId,
+                nama: itemToDelete ? itemToDelete.nama : "",
+                foto: itemToDelete ? itemToDelete.foto : "",
+                tanggal: itemToDelete ? itemToDelete.tanggal : "",
+                waktu: itemToDelete ? itemToDelete.waktu : "",
+                createdAt: itemToDelete ? itemToDelete.createdAt : "",
+                timestamp: itemToDelete ? itemToDelete.timestamp : ""
+            })
+        }).catch((e) => console.log("Google Drive photo delete notice:", e));
     } catch (e) {}
 
     return true;

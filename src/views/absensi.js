@@ -770,16 +770,20 @@ export async function submitAbsensi() {
     if (btn) { btn.disabled = true; btn.textContent = "Menyimpan Absensi..."; }
     try {
         // 1. Simpan langsung ke database Firestore (0ms delay)
-        await saveAbsensiEntry(absData);
+        const savedEntry = await saveAbsensiEntry(absData);
         if (typeof window.renderDashboard === 'function') window.renderDashboard();
 
-        // 2. Kirim foto ke GAS hanya untuk arsip Google Drive (Background)
+        // 2. Kirim foto ke GAS untuk arsip Google Drive (Background)
         if (api && api.isConfigured()) {
             fetch(api.apiUrl, {
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "submit_absensi", data: absData })
+                body: JSON.stringify({
+                    action: "submit_absensi",
+                    id: savedEntry ? savedEntry.id : "",
+                    data: { ...absData, id: savedEntry ? savedEntry.id : "" }
+                })
             }).catch(e => console.log("Google Drive photo upload background notice:", e));
         }
 
@@ -843,28 +847,73 @@ export function renderTodayAbsensiList(list) {
     }
 }
 
-export function handleDeleteAbsensi(id, nama) {
+export async function handleDeleteAbsensi(id, nama) {
     if (!window.showCustomDialog) return;
-    window.showCustomDialog({
+    const confirmed = await window.showCustomDialog({
         title: "Hapus Riwayat Presensi",
-        message: `Apakah Anda yakin ingin menghapus data presensi milik <b>${nama}</b>?<br><br><span style="color:#ef4444; font-size:12px;">Data akan dihapus permanen dari server dan riwayat kehadiran.</span>`,
+        message: `Apakah Anda yakin ingin menghapus data presensi milik <b>${nama}</b>?<br><br><span style="color:#ef4444; font-size:12px;">Data presensi di Cloud Firestore dan foto di Google Drive akan dihapus secara permanen.</span>`,
         confirmText: "Ya, Hapus",
-        cancelText: "Batal",
-        onConfirm: async () => {
-            await deleteAbsensiEntry(id);
-            if (typeof renderTodayAbsensiList === 'function') {
-                renderTodayAbsensiList(state.absensiList);
-            }
-            if (typeof window.renderDashboard === 'function') {
-                window.renderDashboard();
-            }
-        }
+        confirmColor: "#ef4444"
     });
+
+    if (confirmed) {
+        const cardBtn = document.querySelector(`button[onclick*="${id}"]`);
+        if (cardBtn) {
+            cardBtn.disabled = true;
+            cardBtn.innerHTML = '<span>Menghapus...</span>';
+        }
+
+        await deleteAbsensiEntry(id);
+        if (typeof renderTodayAbsensiList === 'function') {
+            renderTodayAbsensiList(state.absensiList);
+        }
+        if (typeof window.renderDashboard === 'function') {
+            window.renderDashboard();
+        }
+    }
 }
 
 export async function loadMonitoring() {
     const list = await getAbsensiList(true);
     renderTodayAbsensiList(list);
+
+    // Sinkronisasi 2 arah background: jika foto dihapus di Drive, hapus di Web
+    if (api && api.isConfigured()) {
+        try {
+            const res = await fetch(`${api.apiUrl}?action=get_active_photos&t=${Date.now()}`);
+            const json = await res.json();
+            if (json && json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
+                const activeDrivePhotos = json.data;
+                const activeIds = new Set();
+                activeDrivePhotos.forEach(p => {
+                    if (p.entryId) activeIds.add(String(p.entryId).trim());
+                    if (p.fileName) {
+                        const m = p.fileName.match(/_(ABS[_\-][0-9]+[_\-][0-9]+)\.jpg/i);
+                        if (m && m[1]) activeIds.add(m[1].replace(/_/g, '-'));
+                    }
+                });
+
+                const nowMs = Date.now();
+                let hasChanges = false;
+                for (const item of (state.absensiList || [])) {
+                    const itemTime = typeof item.timestamp === 'number' ? item.timestamp : (item.createdAt ? new Date(item.createdAt).getTime() : 0);
+                    const isOlderThan3Min = (nowMs - itemTime) > 3 * 60 * 1000;
+                    if (isOlderThan3Min && item.id && !activeIds.has(String(item.id).trim())) {
+                        const volActive = activeDrivePhotos.filter(p => p.volunteerName && item.nama && p.volunteerName.trim().toLowerCase() === item.nama.trim().toLowerCase());
+                        if (volActive.length === 0) {
+                            await deleteAbsensiEntry(item.id);
+                            hasChanges = true;
+                        }
+                    }
+                }
+                if (hasChanges && typeof renderTodayAbsensiList === 'function') {
+                    renderTodayAbsensiList(state.absensiList);
+                }
+            }
+        } catch (e) {
+            // Ignore background sync errors
+        }
+    }
 }
 
 export function renderAbsensi() {
