@@ -22,6 +22,7 @@ import { profilTemplate, initProfil, renderProfilUser } from './views/profil.js'
 import { studioUploadTemplate, initStudioUpload, renderStudioUpload } from './views/studioUpload.js';
 import { studioEditorTemplate, initStudioEditor, renderStudioEditor } from './views/studioEditor.js';
 import { asetVideoTemplate, initAsetVideo, renderAsetVideo } from './views/asetVideo.js';
+import { initNotifications } from './services/notifications.js';
 
 // Expose Core Objects on Window for Legacy Hooks & Inline HTML Handlers
 window.state = state;
@@ -335,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 7. Initialize Firebase Real-time listeners
     initFirebase();
+    initNotifications();
 
     // 8. Authentication Check & Initial Route
     checkAuth();

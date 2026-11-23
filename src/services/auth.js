@@ -168,6 +168,16 @@ export function applyRBAC() {
     if (typeof window.renderAbsensi === 'function') window.renderAbsensi();
     if (typeof window.updateApprovalBadge === 'function') window.updateApprovalBadge();
     if (typeof window.renderAsetVideo === 'function') window.renderAsetVideo();
+
+    // Broadcast Button Control (Khusus Admin / DPL)
+    const btnBroadcast = document.getElementById('btn-header-broadcast');
+    const mobileBroadcast = document.getElementById('mobile-service-broadcast');
+    if (btnBroadcast) {
+        btnBroadcast.style.display = isAdmin ? 'inline-flex' : 'none';
+    }
+    if (mobileBroadcast) {
+        mobileBroadcast.style.display = isAdmin ? 'flex' : 'none';
+    }
 }
 
 export function togglePassword() {

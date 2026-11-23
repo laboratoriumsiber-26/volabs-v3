@@ -1,5 +1,5 @@
 // VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v13';
+const CACHE_NAME = 'volabs-pipd-cache-v14';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -78,3 +78,49 @@ self.addEventListener('fetch', (e) => {
         })
     );
 });
+
+// Push Notification Event Listener (Web Push / Background FCM)
+self.addEventListener('push', (event) => {
+    let data = { title: 'VoLABS PIPD', body: 'Ada pembaruan tugas atau pengumuman baru.', url: '/' };
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            data.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: data.body,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        vibrate: [200, 100, 200],
+        data: {
+            url: data.url || '/'
+        }
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title || 'VoLABS PIPD', options)
+    );
+});
+
+// Notification Click Event Listener (Buka aplikasi ke route yang sesuai)
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if (client.url && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});
+
