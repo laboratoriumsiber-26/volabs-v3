@@ -295,13 +295,20 @@ export async function saveStudioTask(task) {
                             const uUser = normalize(u.username);
                             const uRole = (u.role || '').toLowerCase();
 
-                            // Cek token editor secara EKSPLISIT (Bukan substring parsial yang rawan salah sasaran):
-                            // 1. Nama lengkap sama persis
-                            // 2. Atau username/NIM sama persis
-                            // 3. Atau jika nama minimal 5 karakter, nama terdaftar diawali kata nama editor
+                            // Cek token editor secara presisi:
+                            // 1. Nama lengkap cocok sama persis
+                            // 2. NIM / username cocok sama persis
+                            // 3. Nama awalan cocok (misal 'Abdul Karim' cocok dengan 'Abdul Karim')
+                            // 4. Kata pertama & kedua nama volunteer cocok persis
+                            const wordsTarget = targetClean.split(/\s+/).filter(Boolean);
+                            const wordsUser = uNama.split(/\s+/).filter(Boolean);
+                            const firstTwoTarget = wordsTarget.slice(0, 2).join(' ');
+                            const firstTwoUser = wordsUser.slice(0, 2).join(' ');
+
                             const isExactEditor = targetClean && (
                                 uNama === targetClean ||
                                 uUser === targetClean ||
+                                (firstTwoTarget.length >= 3 && firstTwoTarget === firstTwoUser) ||
                                 (targetClean.length >= 4 && (uNama.startsWith(targetClean) || targetClean.startsWith(uNama)))
                             );
 

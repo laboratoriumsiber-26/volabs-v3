@@ -477,23 +477,72 @@ export function autoAssignVideoEditor() {
     const editors = getVideoEditorsList();
     if (editors.length === 0) return 'Rizki Faturohman';
     const tasks = getStoredEditorTasks();
-    const counts = {};
-    editors.forEach(e => { counts[e] = 0; });
-    tasks.forEach(t => {
-        const ed = t.editor || t.assignedEditor;
-        if (t.status !== 'Selesai' && counts.hasOwnProperty(ed)) {
-            counts[ed]++;
+
+    // 1. Hitung total kumulatif tugas sepanjang masa (Active + Selesai) per editor
+    // Ini menjamin prinsip Round Robin murni: semua editor WAJIB mendapatkan giliran yang sama rata!
+    // Tidak boleh satu orang yang sudah selesai malah terus-menerus diberi tugas baru sementara yang lain masih 0.
+    const totalCounts = {};
+    const activeCounts = {};
+    const lastAssignedIndex = {};
+
+    editors.forEach((e, idx) => {
+        totalCounts[e] = 0;
+        activeCounts[e] = 0;
+        lastAssignedIndex[e] = -1;
+    });
+
+    tasks.forEach((t, tIdx) => {
+        const ed = (t.editor || t.assignedEditor || t.editorName || '').trim();
+        if (totalCounts.hasOwnProperty(ed)) {
+            totalCounts[ed]++;
+            if (t.status !== 'Selesai') {
+                activeCounts[ed]++;
+            }
+            if (lastAssignedIndex[ed] === -1) {
+                lastAssignedIndex[ed] = tIdx; // Catat tugas paling baru diterima
+            }
         }
     });
-    let minCount = Infinity;
-    let chosen = editors[0];
+
+    // 2. Prioritas 1: Editor yang BELUM PERNAH mendapatkan tugas sama sekali (total = 0)
+    const neverAssigned = editors.filter(e => totalCounts[e] === 0);
+    if (neverAssigned.length > 0) {
+        // Ambil secara berurutan sesuai index daftar editor agar adil berputar
+        return neverAssigned[0];
+    }
+
+    // 3. Prioritas 2: Editor dengan total penugasan paling sedikit (Merapatkan jumlah giliran)
+    let minTotal = Infinity;
     editors.forEach(e => {
-        if (counts[e] < minCount) {
-            minCount = counts[e];
-            chosen = e;
+        if (totalCounts[e] < minTotal) {
+            minTotal = totalCounts[e];
         }
     });
-    return chosen;
+
+    const candidates = editors.filter(e => totalCounts[e] === minTotal);
+    if (candidates.length === 1) {
+        return candidates[0];
+    }
+
+    // 4. Prioritas 3: Dari kandidat yang totalnya sama, pilih yang tugas aktifnya paling sedikit
+    let minActive = Infinity;
+    candidates.forEach(e => {
+        if (activeCounts[e] < minActive) {
+            minActive = activeCounts[e];
+        }
+    });
+
+    const lowestActive = candidates.filter(e => activeCounts[e] === minActive);
+    if (lowestActive.length === 1) {
+        return lowestActive[0];
+    }
+
+    // 5. Prioritas 4: Dari yang seri, pilih editor yang PALING LAMA tidak menerima tugas baru (Round-Robin queue)
+    lowestActive.sort((a, b) => {
+        return (lastAssignedIndex[b] || 0) - (lastAssignedIndex[a] || 0);
+    });
+
+    return lowestActive[0] || editors[0];
 }
 
 export function generateRandomWorkingDeadline() {
