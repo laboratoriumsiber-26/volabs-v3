@@ -342,7 +342,7 @@ export function dispatchPushViaGas({ title, body, url = '/', tokens = [] }) {
             mode: "no-cors",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
-                action: "send_push",
+                action: "send_fcm_push",
                 title: title,
                 body: body,
                 url: url,
@@ -355,6 +355,7 @@ export function dispatchPushViaGas({ title, body, url = '/', tokens = [] }) {
         console.warn("dispatchPushViaGas error:", e);
     }
 }
+window.dispatchPushViaGas = dispatchPushViaGas;
 
 export function listenToBroadcastAnnouncements() {
     if (!db || broadcastListenerActive) return;

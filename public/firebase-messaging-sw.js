@@ -2,7 +2,7 @@
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'volabs-pipd-cache-v42';
+const CACHE_NAME = 'volabs-pipd-cache-v43';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -25,18 +25,11 @@ try {
 
     const messaging = firebase.messaging();
 
-    // SATU-SATUNYA HANDLER: onBackgroundMessage Firebase SDK
-    // Firebase SDK menangani semua push events background — JANGAN tambahkan native 'push' listener lagi
-    // Ini memastikan hanya 1x showNotification() dipanggil per pesan
+    // HANDLER 1: onBackgroundMessage Resmi Firebase
     messaging.onBackgroundMessage((payload) => {
-        console.log('[Firebase SW v42] onBackgroundMessage:', payload);
-
-        const title = (payload.notification && payload.notification.title)
-            || (payload.data && payload.data.title)
-            || 'VoLabs PIPD';
-        const body = (payload.notification && payload.notification.body)
-            || (payload.data && payload.data.body)
-            || 'Pembaruan tugas atau pengumuman.';
+        console.log('[Firebase SW v43] onBackgroundMessage received:', payload);
+        const title = (payload.notification && payload.notification.title) || (payload.data && payload.data.title) || 'VoLabs PIPD';
+        const body = (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || 'Pembaruan tugas atau pengumuman.';
         const url = (payload.data && payload.data.url) || '/';
         const origin = self.location.origin || 'https://volabs.vercel.app';
         const iconUrl = origin + '/icon-192.png';
@@ -47,7 +40,7 @@ try {
             badge: iconUrl,
             vibrate: [300, 150, 300, 150, 300],
             requireInteraction: true,
-            tag: 'volabs-push-' + Date.now(),
+            tag: 'volabs-push-' + (payload.data && payload.data.tag ? payload.data.tag : Date.now()),
             renotify: true,
             data: { url: url }
         };
@@ -55,7 +48,7 @@ try {
         return self.registration.showNotification(title, options);
     });
 } catch (e) {
-    console.warn('[Firebase SW v42] init notice:', e);
+    console.warn('[Firebase SW v43] init notice:', e);
 }
 
 // Lifecycle Events
@@ -123,6 +116,47 @@ self.addEventListener('fetch', (e) => {
             }).catch(() => {});
             return cachedResponse || fetchPromise;
         })
+    );
+});
+
+// HANDLER 2: W3C Native Push Event Handler (Dual pipeline agar di OPPO / HP Android lain saat close window tetap terpanggil)
+self.addEventListener('push', (event) => {
+    let payload = { title: 'VoLabs PIPD', body: 'Ada pembaruan tugas atau pengumuman baru.', url: '/' };
+
+    if (event.data) {
+        try {
+            const rawJson = event.data.json();
+            if (rawJson.notification) {
+                payload.title = rawJson.notification.title || payload.title;
+                payload.body = rawJson.notification.body || payload.body;
+            }
+            if (rawJson.data) {
+                payload.title = rawJson.data.title || payload.title;
+                payload.body = rawJson.data.body || payload.body;
+                payload.url = rawJson.data.url || payload.url;
+            }
+        } catch (e) {
+            try { payload.body = event.data.text() || payload.body; } catch (txtErr) {}
+        }
+    }
+
+    const title = payload.title || 'VoLabs PIPD';
+    const origin = self.location.origin || 'https://volabs.vercel.app';
+    const iconUrl = origin + '/icon-192.png';
+
+    const options = {
+        body: payload.body,
+        icon: iconUrl,
+        badge: iconUrl,
+        vibrate: [300, 150, 300, 150, 300],
+        requireInteraction: true,
+        tag: 'volabs-push-' + Date.now(),
+        renotify: true,
+        data: { url: payload.url || '/' }
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
     );
 });
 
