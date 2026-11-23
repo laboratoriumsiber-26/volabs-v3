@@ -39,27 +39,34 @@ export function playNotificationTone() {
     }
 }
 
-// Show native browser notification if granted
+// Show native Android / System notification (muncul di Notification Bar / Tray HP)
 export function showBrowserNotification(title, options = {}) {
     if ('Notification' in window && Notification.permission === 'granted') {
-        try {
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.ready.then(reg => {
-                    reg.showNotification(title, {
-                        icon: '/icon-192.png',
-                        badge: '/icon-192.png',
-                        vibrate: [200, 100, 200],
-                        ...options
+        const notifOptions = {
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            vibrate: [200, 100, 200, 100, 200],
+            requireInteraction: true,
+            tag: options.tag || 'volabs-notification-' + Date.now(),
+            renotify: true,
+            ...options
+        };
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(reg => {
+                if (reg && reg.showNotification) {
+                    reg.showNotification(title, notifOptions).catch(err => {
+                        console.warn("SW showNotification fallback to new Notification:", err);
+                        try { new Notification(title, notifOptions); } catch (e) {}
                     });
-                });
-            } else {
-                new Notification(title, {
-                    icon: '/icon-192.png',
-                    ...options
-                });
-            }
-        } catch (e) {
-            console.warn("Browser notification error:", e);
+                } else {
+                    try { new Notification(title, notifOptions); } catch (e) {}
+                }
+            }).catch(() => {
+                try { new Notification(title, notifOptions); } catch (e) {}
+            });
+        } else {
+            try { new Notification(title, notifOptions); } catch (e) {}
         }
     }
 }

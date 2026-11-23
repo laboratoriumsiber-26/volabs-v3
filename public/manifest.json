@@ -1,36 +1,40 @@
 {
-  "id": ".",
+  "id": "/index.html",
   "name": "VoLabs PIPD",
   "short_name": "VoLabs",
-  "description": "Sistem Rencana Konten & Absensi Volunteer PIPD Berbasis Google Ecosystem",
-  "start_url": "index.html",
-  "scope": ".",
+  "description": "Sistem Manajemen & Pelaporan Relawan PIPD UIN Siber Syekh Nurjati Cirebon",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "orientation": "any",
+  "display_override": ["standalone", "minimal-ui", "window-controls-overlay"],
+  "orientation": "portrait-primary",
   "background_color": "#f8fafc",
   "theme_color": "#BC305F",
+  "categories": ["productivity", "education", "utilities"],
+  "dir": "ltr",
+  "lang": "id-ID",
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
