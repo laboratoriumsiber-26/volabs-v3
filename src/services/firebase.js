@@ -281,8 +281,8 @@ export async function saveStudioTask(task) {
             // 3. Jika status "Perlu Revisi" atau "Selesai" -> khusus ke HP editor yang bersangkutan
             if (task.editorName || task.editor || task.assignedTo) {
                 const targetEditor = (task.editorName || task.editor || task.assignedTo).trim();
-                const cleanName = (str) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-                const targetClean = cleanName(targetEditor);
+                const normalize = (str) => (str || '').toLowerCase().replace(/['’`]/g, "'").replace(/\s+/g, ' ').trim();
+                const targetClean = normalize(targetEditor);
 
                 db.collection('user_devices').get().then(snap => {
                     const editorTokens = [];
@@ -291,15 +291,25 @@ export async function saveStudioTask(task) {
                     snap.forEach(doc => {
                         const u = doc.data();
                         if (u && u.fcmToken && String(u.fcmToken).length > 20) {
-                            const uNama = cleanName(u.nama);
-                            const uUser = cleanName(u.username);
+                            const uNama = normalize(u.nama);
+                            const uUser = normalize(u.username);
                             const uRole = (u.role || '').toLowerCase();
 
-                            // Cek token editor
-                            if (targetClean && (uNama.includes(targetClean) || targetClean.includes(uNama) || uUser === targetClean)) {
+                            // Cek token editor secara EKSPLISIT (Bukan substring parsial yang rawan salah sasaran):
+                            // 1. Nama lengkap sama persis
+                            // 2. Atau username/NIM sama persis
+                            // 3. Atau jika nama minimal 5 karakter, nama terdaftar diawali kata nama editor
+                            const isExactEditor = targetClean && (
+                                uNama === targetClean ||
+                                uUser === targetClean ||
+                                (targetClean.length >= 4 && (uNama.startsWith(targetClean) || targetClean.startsWith(uNama)))
+                            );
+
+                            if (isExactEditor) {
                                 editorTokens.push(u.fcmToken);
                             }
-                            // Cek token admin
+
+                            // Cek token admin secara eksplisit
                             if (uRole.includes('admin') || uRole.includes('dpl') || uUser === 'admin') {
                                 adminTokens.push(u.fcmToken);
                             }

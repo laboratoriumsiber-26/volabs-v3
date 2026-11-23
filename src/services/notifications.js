@@ -430,7 +430,8 @@ export function listenToStudioTaskAssignments() {
         const currentUser = state.currentUser;
         if (!currentUser) return;
         const currentName = (currentUser.namaLengkap || currentUser.nama || currentUser.username || '').toLowerCase().trim();
-        const currentRole = currentUser.role || '';
+        const currentRole = (currentUser.role || '').toLowerCase();
+        const isUserAdmin = currentRole.includes('admin') || currentRole.includes('dpl');
 
         snapshot.docChanges().forEach((change) => {
             const task = change.doc.data();
@@ -439,15 +440,17 @@ export function listenToStudioTaskAssignments() {
             if (taskId === 'ET-1001' || taskId === 'ET-1002') return;
 
             const assignedTo = (task.editorName || task.editor || task.assignedTo || '').toLowerCase().trim();
+            // Pengecekan ketat: Hanya milik volunteer yang bersangkutan
             const isForMe = assignedTo && (assignedTo === currentName || currentName.includes(assignedTo) || assignedTo.includes(currentName));
 
             if (change.type === 'added' && !lastKnownTaskIds.has(taskId)) {
                 lastKnownTaskIds.add(taskId);
                 localStorage.setItem('volabs_notified_task_ids', JSON.stringify([...lastKnownTaskIds].slice(-100)));
 
-                // If added task is assigned to current logged-in editor/volunteer
-                if (isForMe || currentRole === 'Super Admin' || currentRole === 'Admin') {
-                    const prefix = isForMe ? 'Penugasan Video Baru' : `Penugasan Editor: ${task.editorName || 'Belum ada PIC'}`;
+                // HANYA munculkan notifikasi jika tugas ini ditujukan untuk user yang sedang login, ATAU user adalah Admin
+                // Volunteer lain yang TIDAK ditugaskan tidak boleh menerima notifikasi ini sama sekali!
+                if (isForMe || isUserAdmin) {
+                    const prefix = isForMe ? 'Penugasan Video Baru' : `Penugasan Video: ${task.editorName || task.editor || 'Volunteer'}`;
                     const deadlineStr = task.deadline ? ` (Tenggat: ${task.deadline})` : '';
 
                     showInAppToast(
@@ -464,21 +467,31 @@ export function listenToStudioTaskAssignments() {
                         data: { url: '/studio-editor' }
                     });
                 }
-            } else if (change.type === 'modified' && isForMe) {
-                // If status changed or updated
-                if (task.status === 'Revisi' || task.status === 'Review') {
+            } else if (change.type === 'modified') {
+                // Notifikasi pembaruan status:
+                // Jika status perlu review -> tampilkan ke Admin
+                // Jika status revisi atau selesai -> tampilkan ke Volunteer yang bersangkutan
+                if (task.status === 'Menunggu Review Admin' && isUserAdmin) {
                     showInAppToast(
-                        `Pembaruan Status Tugas: ${task.status}`,
-                        `Materi video "${task.judul || 'Video'}" telah diperbarui statusnya menjadi ${task.status}.`,
-                        'warning',
-                        () => {
-                            if (window.switchView) window.switchView('studio-editor');
-                        }
+                        `Hasil Video: ${task.editor || task.editorName || 'Editor'}`,
+                        `Editor telah mengunggah hasil edit video "${task.judul || 'Video'}".`,
+                        'info',
+                        () => { if (window.switchView) window.switchView('studio-editor'); }
                     );
-                    showBrowserNotification(`Pembaruan Status: ${task.status}`, {
-                        body: `Tugas "${task.judul || 'Video'}" memerlukan perhatian Anda.`,
-                        data: { url: '/studio-editor' }
-                    });
+                } else if ((task.status === 'Perlu Revisi' || task.status === 'Revisi') && isForMe) {
+                    showInAppToast(
+                        `Catatan Revisi: ${task.judul || 'Video'}`,
+                        `Materi video memerlukan revisi: ${task.note || task.revisi || 'Silakan cek aplikasi.'}`,
+                        'warning',
+                        () => { if (window.switchView) window.switchView('studio-editor'); }
+                    );
+                } else if (task.status === 'Selesai' && isForMe) {
+                    showInAppToast(
+                        `Video Disetujui: ${task.judul || 'Video'}`,
+                        `Materi video Anda telah disetujui.`,
+                        'success',
+                        () => { if (window.switchView) window.switchView('studio-editor'); }
+                    );
                 }
             }
         });
