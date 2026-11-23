@@ -1,4 +1,19 @@
 /**
+ * Fungsi Pengujian Langsung di Editor Apps Script:
+ * Pilih fungsi 'testManualPush' di dropdown atas editor lalu klik 'Run' (Jalankan)
+ */
+function testManualPush() {
+  var sampleToken = "fDX4UlZtx1m8ilr--IRkMl:APA91bG48O3_rCHEO_TzRqTvG4uIXfAk_evn4ipYPD8fFLr4tykBLi_JvpD1Gr_HkeLEbrbfH-6MkNdfF9way84t-aDg02uBW1Cg3AKkm-w2Xn6uEM5mzSI";
+  var res = sendFcmPushNotification({
+    tokens: [sampleToken],
+    title: "VoLabs PIPD: Uji Coba Status",
+    body: "Tugas video Anda telah diperbarui menjadi Revisi.",
+    url: "/"
+  });
+  Logger.log("HASIL EKSEKUSI FCM: " + JSON.stringify(res, null, 2));
+}
+
+/**
  * ============================================================================
  * VOLABS PIPD - GOOGLE DRIVE PHOTO STORAGE & FCM PUSH NOTIFICATION DISPATCHER
  * ============================================================================
@@ -39,6 +54,18 @@ function doGet(e) {
         status: "success",
         token: token ? (token.substring(0, 15) + "...") : "null"
       });
+    }
+
+    // Tes langsung kirim notifikasi ke token perangkat Anda untuk mendiagnosa respon Google
+    if (action === "test_send_push") {
+      var targetDeviceToken = (e && e.parameter && e.parameter.token) || "fDX4UlZtx1m8ilr--IRkMl:APA91bG48O3_rCHEO_TzRqTvG4uIXfAk_evn4ipYPD8fFLr4tykBLi_JvpD1Gr_HkeLEbrbfH-6MkNdfF9way84t-aDg02uBW1Cg3AKkm-w2Xn6uEM5mzSI";
+      var resDiag = sendFcmPushNotification({
+        tokens: [targetDeviceToken],
+        title: "Uji Coba Langsung VoLabs",
+        body: "Ini adalah notifikasi langsung dari server ke HP Anda!",
+        url: "/"
+      });
+      return outputJson(resDiag);
     }
 
     return outputJson({
@@ -269,13 +296,13 @@ function getFcmOAuthToken() {
 
   var jwt = signatureInput + "." + signatureEncoded;
 
+  var postBody = "grant_type=" + encodeURIComponent("urn:ietf:params:oauth:grant_type:jwt-bearer") +
+                 "&assertion=" + encodeURIComponent(jwt);
+
   var tokenResponse = UrlFetchApp.fetch("https://oauth2.googleapis.com/token", {
     method: "post",
     contentType: "application/x-www-form-urlencoded",
-    payload: {
-      grant_type: "urn:ietf:params:oauth:grant_type:jwt-bearer",
-      assertion: jwt
-    },
+    payload: postBody,
     muteHttpExceptions: true
   });
 

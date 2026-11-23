@@ -331,7 +331,12 @@ export async function sendBroadcastAnnouncement({ judul, pesan, tipe = 'info', t
 export function dispatchPushViaGas({ title, body, url = '/', tokens = [] }) {
     try {
         const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbz-sejP6KGFlssbss1npzZbS_6at7l-ddx4YclcJai-fFbHGZaxG81CKYXYRcwuH7x0/exec";
-        if (!gasUrl || !tokens || tokens.length === 0) return;
+        if (!gasUrl || !tokens || tokens.length === 0) {
+            console.warn("dispatchPushViaGas skipped: token kosong atau gasUrl tidak ada");
+            return;
+        }
+
+        console.log("Mengirim FCM Push via GAS ke:", tokens.length, "token perangkat.");
 
         fetch(gasUrl, {
             method: "POST",
