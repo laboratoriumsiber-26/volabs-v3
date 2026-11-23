@@ -275,51 +275,67 @@ export async function saveStudioTask(task) {
         try {
             await db.collection('studio_tasks').doc(taskId).set(task, { merge: true });
 
-            // Push FCM notifikasi ke HP editor yang ditugaskan dan admin/uploader
+            // Push FCM notifikasi khusus ke perangkat yang tepat (Bukan broadcast acak):
+            // 1. Jika tugas baru ditugaskan -> khusus ke HP editor yang ditugaskan
+            // 2. Jika tugas berstatus "Menunggu Review Admin" -> khusus ke HP Administrator
+            // 3. Jika status "Perlu Revisi" atau "Selesai" -> khusus ke HP editor yang bersangkutan
             if (task.editorName || task.editor || task.assignedTo) {
                 const targetEditor = (task.editorName || task.editor || task.assignedTo).trim();
                 const cleanName = (str) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
                 const targetClean = cleanName(targetEditor);
 
                 db.collection('user_devices').get().then(snap => {
-                    const tokens = [];
-                    const allTokens = [];
+                    const editorTokens = [];
+                    const adminTokens = [];
+
                     snap.forEach(doc => {
                         const u = doc.data();
                         if (u && u.fcmToken && String(u.fcmToken).length > 20) {
-                            allTokens.push(u.fcmToken);
                             const uNama = cleanName(u.nama);
                             const uUser = cleanName(u.username);
+                            const uRole = (u.role || '').toLowerCase();
+
+                            // Cek token editor
                             if (targetClean && (uNama.includes(targetClean) || targetClean.includes(uNama) || uUser === targetClean)) {
-                                tokens.push(u.fcmToken);
+                                editorTokens.push(u.fcmToken);
+                            }
+                            // Cek token admin
+                            if (uRole.includes('admin') || uRole.includes('dpl') || uUser === 'admin') {
+                                adminTokens.push(u.fcmToken);
                             }
                         }
                     });
 
-                    // Gunakan token editor yang cocok, atau kirim ke seluruh device terdaftar bila token khusus belum cocok
-                    const targetTokens = tokens.length > 0 ? tokens : allTokens;
+                    let targetTokens = [];
+                    let pushTitle = `Penugasan Video: ${targetEditor}`;
+                    let pushBody = `Tugas baru "${task.judul || 'Materi Video'}" telah ditugaskan kepada Anda.`;
+
+                    if (task.status === 'Menunggu Review Admin' || task.status === 'Sedang Dikerjakan') {
+                        // Notifikasi diarahkan ke Administrator
+                        targetTokens = adminTokens;
+                        pushTitle = `Hasil Video: ${targetEditor}`;
+                        pushBody = `${targetEditor} telah memperbarui status tugas "${task.judul || 'Video'}" menjadi: ${task.status}.`;
+                    } else if (task.status === 'Perlu Revisi' || task.status === 'Revisi') {
+                        // Notifikasi diarahkan ke Editor
+                        targetTokens = editorTokens;
+                        pushTitle = `Revisi Video: ${targetEditor}`;
+                        pushBody = `Materi "${task.judul || 'Video'}" memerlukan revisi: ${task.revisi || task.note || 'Silakan periksa catatan revisi di aplikasi.'}`;
+                    } else if (task.status === 'Selesai' || task.status === 'Disetujui') {
+                        // Notifikasi diarahkan ke Editor
+                        targetTokens = editorTokens;
+                        pushTitle = `Video Disetujui: ${targetEditor}`;
+                        pushBody = `Materi "${task.judul || 'Video'}" yang Anda kerjakan telah disetujui.`;
+                    } else {
+                        // Status default penugasan awal -> ke Editor
+                        targetTokens = editorTokens;
+                    }
 
                     if (targetTokens.length > 0 && typeof window.dispatchPushViaGas === 'function') {
-                        const dline = task.deadline ? ` (Tenggat: ${task.deadline})` : '';
-                        let pushTitle = `Penugasan Video: ${targetEditor}`;
-                        let pushBody = `Tugas baru "${task.judul || 'Materi Video'}" telah ditugaskan kepada Anda${dline}.`;
-                        
-                        if (task.status === 'Perlu Revisi' || task.status === 'Revisi') {
-                            pushTitle = `Revisi Video: ${targetEditor}`;
-                            pushBody = `Materi "${task.judul || 'Video'}" memerlukan revisi: ${task.revisi || 'Silakan periksa catatan revisi di aplikasi.'}`;
-                        } else if (task.status === 'Menunggu Review Admin') {
-                            pushTitle = `Hasil Video: ${targetEditor}`;
-                            pushBody = `${targetEditor} telah mengunggah hasil edit untuk "${task.judul || 'Video'}".`;
-                        } else if (task.status === 'Selesai' || task.status === 'Disetujui') {
-                            pushTitle = `Video Disetujui: ${targetEditor}`;
-                            pushBody = `Materi "${task.judul || 'Video'}" yang Anda kerjakan telah disetujui.`;
-                        }
-
                         window.dispatchPushViaGas({
                             title: pushTitle,
                             body: pushBody,
                             url: '/studio-editor',
-                            tokens: targetTokens
+                            tokens: [...new Set(targetTokens)]
                         });
                     }
                 }).catch(() => {});
@@ -417,7 +433,7 @@ export async function getAbsensiList(force = false) {
     // 2. Jika Firestore kosong atau permission denied, ambil langsung dari GAS Google Drive
     if (list.length === 0) {
         try {
-            const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycby_c_e0dlZIlGPpnNHMDqn0YfGDJm-C1IU0AImvGiF65mOPlomKnpdZjvwJAzIbu11E/exec";
+            const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbxihn6sBvg2kKOvuNj9DdG2TDawwO0OvNexWH5NTv8TedfySqj3kUm3MMNTQmKMs7Yg/exec";
             const res = await fetch(`${gasUrl}?action=get_absensi&t=${Date.now()}`);
             const json = await res.json();
             if (json && json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
@@ -473,7 +489,7 @@ export async function deleteAbsensiEntry(id) {
 
     // 3. Delete from Google Drive via GAS
     try {
-        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycby_c_e0dlZIlGPpnNHMDqn0YfGDJm-C1IU0AImvGiF65mOPlomKnpdZjvwJAzIbu11E/exec";
+        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbxihn6sBvg2kKOvuNj9DdG2TDawwO0OvNexWH5NTv8TedfySqj3kUm3MMNTQmKMs7Yg/exec";
         fetch(gasUrl, {
             method: "POST",
             mode: "no-cors",

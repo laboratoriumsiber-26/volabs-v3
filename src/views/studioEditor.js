@@ -138,9 +138,17 @@ export const studioEditorTemplate = `
                     <div id="modal-editor-revisi-content" style="font-size: 12px; color: var(--text-main); line-height: 1.4;">-</div>
                 </div>
 
-                <!-- Input Hasil Edit -->
+                <!-- Input Hasil Edit & Status Pengerjaan bagi Volunteer -->
+                <div id="modal-editor-volunteer-status-group" class="form-group" style="margin-bottom: 0.85rem;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Status Pengerjaan Anda</label>
+                    <select id="modal-editor-volunteer-status" class="form-select" style="font-size: 12px;">
+                        <option value="Sedang Dikerjakan">Sedang Dikerjakan (Dalam Proses Editing)</option>
+                        <option value="Menunggu Review Admin">Menunggu Review Admin (Selesai Diedit & Kirim Link)</option>
+                    </select>
+                </div>
+
                 <div class="form-group" style="margin-bottom: 0.85rem;">
-                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Link Hasil Edit Video (Google Drive / YouTube Unlisted) <span style="color: #ef4444;">*</span></label>
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Link Hasil Edit Video (Google Drive / YouTube Unlisted)</label>
                     <input type="url" id="modal-editor-input-hasil" class="form-input" placeholder="https://drive.google.com/file/d/...">
                 </div>
 
@@ -475,6 +483,17 @@ export function openEditorTaskModal(taskId) {
 
     document.getElementById('modal-editor-input-hasil').value = t.hasilEdit || '';
 
+    const volunteerGroup = document.getElementById('modal-editor-volunteer-status-group');
+    const volunteerSelect = document.getElementById('modal-editor-volunteer-status');
+    if (volunteerGroup && volunteerSelect) {
+        if (!isAdmin) {
+            volunteerGroup.style.display = 'block';
+            volunteerSelect.value = t.status === 'Menunggu Review Admin' ? 'Menunggu Review Admin' : 'Sedang Dikerjakan';
+        } else {
+            volunteerGroup.style.display = 'none';
+        }
+    }
+
     const adminFields = document.getElementById('modal-editor-admin-fields');
     const btnDel = document.getElementById('modal-editor-btn-delete');
     if (adminFields) {
@@ -518,8 +537,12 @@ export async function submitEditorTaskModal() {
         t.revisi = document.getElementById('modal-editor-admin-revisi').value.trim() || '-';
         t.note = document.getElementById('modal-editor-admin-note').value.trim();
     } else {
-        if (hasilEditVal && (t.status === 'Belum Dikerjakan' || t.status === 'Perlu Revisi')) {
+        const vStatusEl = document.getElementById('modal-editor-volunteer-status');
+        const chosenStatus = vStatusEl ? vStatusEl.value : 'Sedang Dikerjakan';
+        if (hasilEditVal) {
             t.status = 'Menunggu Review Admin';
+        } else {
+            t.status = chosenStatus;
         }
     }
 
@@ -527,67 +550,8 @@ export async function submitEditorTaskModal() {
     closeEditorTaskModal();
     renderStudioEditor();
 
+    // Simpan ke Firestore & otomatis tembak notifikasi via saveStudioTask
     await saveStudioTask(t);
-
-    // Kirim notifikasi push seketika untuk setiap aksi status
-    try {
-        const targetEditor = (t.editor || t.assignedEditor || t.editorName || t.assignedTo || '').trim();
-        const dline = t.deadline ? ` (Tenggat: ${formatTanggalIndo(t.deadline)})` : '';
-        let pushTitle = `Pembaruan Tugas Video: ${targetEditor || 'Volunteer'}`;
-        let pushBody = `Status tugas "${t.judul || 'Materi Video'}" telah diperbarui menjadi ${t.status}.`;
-
-        if (t.status === 'Perlu Revisi' || t.status === 'Revisi' || (t.revisi && t.revisi !== '-' && t.revisi !== oldRevisi)) {
-            pushTitle = `Revisi Video: ${targetEditor || 'Volunteer'}`;
-            const cat = t.note || t.revisi || 'Silakan cek catatan perbaikan di aplikasi.';
-            pushBody = `Materi "${t.judul || 'Video'}" memerlukan perbaikan: ${cat}`;
-        } else if (t.status === 'Menunggu Review Admin') {
-            pushTitle = `Hasil Video: ${targetEditor || 'Volunteer'}`;
-            pushBody = `${targetEditor || 'Editor'} telah mengunggah hasil edit video "${t.judul || 'Video'}".`;
-        } else if (t.status === 'Selesai') {
-            pushTitle = `Video Disetujui: ${targetEditor || 'Volunteer'}`;
-            pushBody = `Materi "${t.judul || 'Video'}" telah disetujui dan berstatus Selesai.`;
-        }
-
-        if (db) {
-            const devSnap = await db.collection('user_devices').get();
-            const fcmTokens = [];
-            const cleanStr = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-            const targetClean = cleanStr(targetEditor);
-
-            devSnap.forEach(doc => {
-                const u = doc.data();
-                if (u && u.fcmToken && String(u.fcmToken).length > 20) {
-                    const uNama = cleanStr(u.nama);
-                    const uUser = cleanStr(u.username);
-                    if (!targetClean || uNama.includes(targetClean) || targetClean.includes(uNama) || uUser === targetClean) {
-                        fcmTokens.push(String(u.fcmToken).trim());
-                    }
-                }
-            });
-
-            // Jika tidak ada token yang cocok spesifik nama editor, kirim ke semua device volunteer terdaftar
-            const finalTokens = fcmTokens.length > 0 ? fcmTokens : [];
-            if (finalTokens.length === 0) {
-                devSnap.forEach(doc => {
-                    const u = doc.data();
-                    if (u && u.fcmToken && String(u.fcmToken).length > 20) {
-                        finalTokens.push(String(u.fcmToken).trim());
-                    }
-                });
-            }
-
-            if (finalTokens.length > 0 && typeof window.dispatchPushViaGas === 'function') {
-                window.dispatchPushViaGas({
-                    title: pushTitle,
-                    body: pushBody,
-                    url: '/studio-editor',
-                    tokens: [...new Set(finalTokens)]
-                });
-            }
-        }
-    } catch (notifErr) {
-        console.warn("Studio editor push dispatch notice:", notifErr);
-    }
     if (typeof window.renderDashboard === 'function') window.renderDashboard();
     if (typeof window.renderPelaporan === 'function') window.renderPelaporan();
 

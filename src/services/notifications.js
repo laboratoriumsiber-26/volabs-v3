@@ -170,20 +170,19 @@ function urlBase64ToUint8Array(base64String) {
 async function saveUserDeviceInfo(fcmToken = null) {
     if (!db) return;
     try {
-        let deviceKey = '';
-        if (state.currentUser) {
-            deviceKey = state.currentUser.username || state.currentUser.nim || 'user';
-        } else if (fcmToken) {
-            // Jika belum login, gunakan potongan token unik sebagai ID perangkat
-            deviceKey = 'anon_' + fcmToken.substring(fcmToken.length - 20);
-        } else {
+        // Jangan simpan token untuk guest atau jika belum login!
+        if (!state.currentUser) {
+            console.log("Device token ditahan: Menunggu volunteer login.");
             return;
         }
 
+        const deviceKey = state.currentUser.username || state.currentUser.nim || state.currentUser.namaLengkap;
+        if (!deviceKey) return;
+
         const payload = {
-            username: state.currentUser ? (state.currentUser.username || state.currentUser.nim || 'user') : 'guest',
-            nama: state.currentUser ? (state.currentUser.namaLengkap || state.currentUser.nama || '') : 'Guest / Belum Login',
-            role: state.currentUser ? (state.currentUser.role || '') : 'guest',
+            username: state.currentUser.username || state.currentUser.nim || 'user',
+            nama: state.currentUser.namaLengkap || state.currentUser.nama || '',
+            role: state.currentUser.role || 'Mahasiswa',
             notificationPermission: Notification.permission || 'default',
             lastActive: new Date().toISOString(),
             userAgent: navigator.userAgent
@@ -330,7 +329,7 @@ export async function sendBroadcastAnnouncement({ judul, pesan, tipe = 'info', t
 // Helper untuk memanggil Google Apps Script FCM Dispatcher di latar belakang
 export function dispatchPushViaGas({ title, body, url = '/', tokens = [] }) {
     try {
-        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycby_c_e0dlZIlGPpnNHMDqn0YfGDJm-C1IU0AImvGiF65mOPlomKnpdZjvwJAzIbu11E/exec";
+        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbxihn6sBvg2kKOvuNj9DdG2TDawwO0OvNexWH5NTv8TedfySqj3kUm3MMNTQmKMs7Yg/exec";
         if (!gasUrl || !tokens || tokens.length === 0) {
             console.warn("dispatchPushViaGas skipped: token kosong atau gasUrl tidak ada");
             return;
@@ -369,6 +368,9 @@ export function listenToBroadcastAnnouncements() {
         .orderBy('timestamp', 'desc')
         .limit(15)
         .onSnapshot((snapshot) => {
+            // JANGAN tampilkan notifikasi jika belum login
+            if (!state.currentUser) return;
+
             snapshot.docChanges().forEach((change) => {
                 if (change.type === 'added') {
                     const data = change.doc.data();

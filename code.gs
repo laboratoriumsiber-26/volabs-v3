@@ -3,7 +3,7 @@
  * Pilih fungsi 'testManualPush' di dropdown atas editor lalu klik 'Run' (Jalankan)
  */
 function testManualPush() {
-  var sampleToken = "fDX4UlZtx1m8ilr--IRkMl:APA91bG48O3_rCHEO_TzRqTvG4uIXfAk_evn4ipYPD8fFLr4tykBLi_JvpD1Gr_HkeLEbrbfH-6MkNdfF9way84t-aDg02uBW1Cg3AKkm-w2Xn6uEM5mzSI";
+  var sampleToken = "e2G2_43d6ZOJeHsy4xXeEC:APA91bF50mspbnIfy7IyWPBowv8Q-Y47ejejWXB-tvF_WXsGBxnnH7DiNUVgrHd9Kdf5irm2zew69cQ_eGUCc3kmeNLrLBg73BfXlTlOYPFRMDKFMXkRIEk";
   var res = sendFcmPushNotification({
     tokens: [sampleToken],
     title: "VoLabs PIPD: Uji Coba Status",
@@ -196,29 +196,34 @@ function sendFcmPushNotification(payload) {
           badge: iconUrl
         },
         android: {
-          priority: "high",
+          priority: "HIGH",
+          ttl: "86400s",
           notification: {
             title: title,
             body: body,
             icon: iconUrl,
             color: "#BC305F",
             sound: "default",
-            click_action: url
+            click_action: url,
+            notification_priority: "PRIORITY_MAX",
+            visibility: "PUBLIC"
           }
         },
         webpush: {
           headers: {
-            Urgency: "high"
+            Urgency: "high",
+            TTL: "86400"
           },
           notification: {
             title: title,
             body: body,
             icon: iconUrl,
             badge: iconUrl,
-            vibrate: [200, 100, 200, 100, 200],
+            vibrate: [300, 150, 300, 150, 300],
             requireInteraction: true,
             tag: "volabs-push-" + new Date().getTime(),
-            renotify: true
+            renotify: true,
+            silent: false
           },
           fcm_options: {
             link: url
@@ -300,7 +305,7 @@ function getFcmOAuthToken() {
   var tokenResponse = UrlFetchApp.fetch("https://oauth2.googleapis.com/token", {
     method: "post",
     contentType: "application/x-www-form-urlencoded",
-    payload: "grant_type=" + encodeURIComponent("urn:ietf:params:oauth:grant_type:jwt-bearer") + "&assertion=" + encodeURIComponent(jwt),
+    payload: "grant_type=" + encodeURIComponent("urn:ietf:params:oauth:grant-type:jwt-bearer") + "&assertion=" + encodeURIComponent(jwt),
     muteHttpExceptions: true
   });
 
