@@ -291,6 +291,9 @@ export async function handleLogin(e) {
             btn.disabled = false;
         }
         showBannerAlert('Selamat datang, ' + matchedUser.namaLengkap);
+        if (typeof window.requestNotificationPermission === 'function') {
+            window.requestNotificationPermission();
+        }
         if (typeof window.navigateTo === 'function') window.navigateTo('/dashboard');
         if (typeof window.refreshData === 'function') window.refreshData();
         return;

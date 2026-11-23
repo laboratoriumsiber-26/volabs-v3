@@ -275,20 +275,31 @@ export async function saveStudioTask(task) {
         try {
             await db.collection('studio_tasks').doc(taskId).set(task, { merge: true });
 
-            // Push FCM notifikasi ke HP editor yang ditugaskan jika ada
+            // Push FCM notifikasi ke HP editor yang ditugaskan dan admin/uploader
             if (task.editorName || task.editor || task.assignedTo) {
                 const targetEditor = (task.editorName || task.editor || task.assignedTo).trim();
-                const targetEditorLower = targetEditor.toLowerCase();
+                const cleanName = (str) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                const targetClean = cleanName(targetEditor);
+
                 db.collection('user_devices').get().then(snap => {
                     const tokens = [];
+                    const allTokens = [];
                     snap.forEach(doc => {
                         const u = doc.data();
-                        const uName = (u.nama || u.username || '').trim().toLowerCase();
-                        if (u && u.fcmToken && (uName === targetEditorLower || targetEditorLower.includes(uName) || uName.includes(targetEditorLower))) {
-                            tokens.push(u.fcmToken);
+                        if (u && u.fcmToken && String(u.fcmToken).length > 20) {
+                            allTokens.push(u.fcmToken);
+                            const uNama = cleanName(u.nama);
+                            const uUser = cleanName(u.username);
+                            if (targetClean && (uNama.includes(targetClean) || targetClean.includes(uNama) || uUser === targetClean)) {
+                                tokens.push(u.fcmToken);
+                            }
                         }
                     });
-                    if (tokens.length > 0 && typeof window.dispatchPushViaGas === 'function') {
+
+                    // Gunakan token editor yang cocok, atau kirim ke seluruh device terdaftar bila token khusus belum cocok
+                    const targetTokens = tokens.length > 0 ? tokens : allTokens;
+
+                    if (targetTokens.length > 0 && typeof window.dispatchPushViaGas === 'function') {
                         const dline = task.deadline ? ` (Tenggat: ${task.deadline})` : '';
                         let pushTitle = `Penugasan Video: ${targetEditor}`;
                         let pushBody = `Tugas baru "${task.judul || 'Materi Video'}" telah ditugaskan kepada Anda${dline}.`;
@@ -308,7 +319,7 @@ export async function saveStudioTask(task) {
                             title: pushTitle,
                             body: pushBody,
                             url: '/studio-editor',
-                            tokens: tokens
+                            tokens: targetTokens
                         });
                     }
                 }).catch(() => {});
