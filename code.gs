@@ -266,10 +266,9 @@ function sendFcmPushNotification(payload) {
  */
 function getFcmOAuthToken() {
   var cache = CacheService.getScriptCache();
-  var cachedToken = cache.get("fcm_oauth_token");
-  if (cachedToken) {
-    return cachedToken;
-  }
+  // Bypass cache saat pengujian
+  // var cachedToken = cache.get("fcm_oauth_token");
+  // if (cachedToken) return cachedToken;
 
   var now = Math.floor(new Date().getTime() / 1000);
   var exp = now + 3600; // 1 jam
@@ -287,22 +286,23 @@ function getFcmOAuthToken() {
     iat: now
   };
 
-  var headerEncoded = Utilities.base64EncodeWebSafe(JSON.stringify(header));
-  var claimSetEncoded = Utilities.base64EncodeWebSafe(JSON.stringify(claimSet));
+  var headerStr = JSON.stringify(header);
+  var claimSetStr = JSON.stringify(claimSet);
+  var headerEncoded = Utilities.base64EncodeWebSafe(headerStr).replace(/=+$/, "");
+  var claimSetEncoded = Utilities.base64EncodeWebSafe(claimSetStr).replace(/=+$/, "");
   var signatureInput = headerEncoded + "." + claimSetEncoded;
 
-  var signature = Utilities.computeRsaSha256Signature(signatureInput, FIREBASE_SERVICE_ACCOUNT.private_key);
-  var signatureEncoded = Utilities.base64EncodeWebSafe(signature);
+  var signatureBytes = Utilities.computeRsaSha256Signature(signatureInput, FIREBASE_SERVICE_ACCOUNT.private_key);
+  var signatureEncoded = Utilities.base64EncodeWebSafe(signatureBytes).replace(/=+$/, "");
 
   var jwt = signatureInput + "." + signatureEncoded;
 
-  var postBody = "grant_type=" + encodeURIComponent("urn:ietf:params:oauth:grant_type:jwt-bearer") +
-                 "&assertion=" + encodeURIComponent(jwt);
-
   var tokenResponse = UrlFetchApp.fetch("https://oauth2.googleapis.com/token", {
     method: "post",
-    contentType: "application/x-www-form-urlencoded",
-    payload: postBody,
+    payload: {
+      grant_type: "urn:ietf:params:oauth:grant_type:jwt-bearer",
+      assertion: jwt
+    },
     muteHttpExceptions: true
   });
 
