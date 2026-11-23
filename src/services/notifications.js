@@ -95,42 +95,57 @@ export async function requestNotificationPermission() {
     }
 }
 
-// Inisialisasi token FCM Web Push
+// Inisialisasi token FCM Web Push (Dengan Dual Pipeline: Firebase Messaging + Native PushManager Fallback)
 export async function initializeFcmToken() {
     try {
-        if (!firebase.messaging.isSupported()) {
-            console.log("Firebase messaging is not supported in this browser environment.");
-            saveUserDeviceInfo(null);
-            return null;
-        }
-
-        if (!messagingInstance) {
-            messagingInstance = firebase.messaging();
-        }
-
-        // Ambil service worker registration yang aktif
         let swRegistration = null;
         if ('serviceWorker' in navigator) {
             swRegistration = await navigator.serviceWorker.ready;
         }
 
-        const token = await messagingInstance.getToken({
-            vapidKey: FIREBASE_VAPID_KEY,
-            serviceWorkerRegistration: swRegistration
-        });
+        let token = null;
 
-        if (token) {
-            console.log("FCM Device Token berhasil diperoleh:", token.substring(0, 15) + "...");
-            await saveUserDeviceInfo(token);
+        if (firebase.messaging.isSupported()) {
+            if (!messagingInstance) {
+                messagingInstance = firebase.messaging();
+            }
+
+            token = await messagingInstance.getToken({
+                vapidKey: FIREBASE_VAPID_KEY,
+                serviceWorkerRegistration: swRegistration
+            });
+
+            // Handle foreground messages dari FCM
+            messagingInstance.onMessage((payload) => {
+                console.log("FCM Foreground Message received:", payload);
+                const title = (payload.notification && payload.notification.title) || (payload.data && payload.data.title) || 'VoLabs PIPD';
+                const body = (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || 'Pembaruan sistem baru.';
+                showInAppToast(title, body, 'info');
+            });
         }
 
-        // Handle foreground messages dari FCM
-        messagingInstance.onMessage((payload) => {
-            console.log("FCM Foreground Message received:", payload);
-            const title = (payload.notification && payload.notification.title) || (payload.data && payload.data.title) || 'VoLABS PIPD';
-            const body = (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || 'Pembaruan sistem baru.';
-            showInAppToast(title, body, 'info');
-        });
+        // Native PushManager fallback jika FCM getToken null
+        if (!token && swRegistration && swRegistration.pushManager) {
+            try {
+                const sub = await swRegistration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(FIREBASE_VAPID_KEY)
+                });
+                if (sub) {
+                    token = JSON.stringify(sub);
+                    console.log("Native Push Subscription berhasil:", token.substring(0, 20) + "...");
+                }
+            } catch (nativeErr) {
+                console.warn("Native pushManager subscription notice:", nativeErr);
+            }
+        }
+
+        if (token) {
+            console.log("FCM / Push Device Token siap:", token.substring(0, 15) + "...");
+            await saveUserDeviceInfo(token);
+        } else {
+            saveUserDeviceInfo(null);
+        }
 
         return token;
     } catch (err) {
@@ -138,6 +153,17 @@ export async function initializeFcmToken() {
         saveUserDeviceInfo(null);
         return null;
     }
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
 }
 
 // Save device info & FCM token for user / device
