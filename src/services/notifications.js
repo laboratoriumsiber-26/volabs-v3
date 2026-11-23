@@ -42,13 +42,16 @@ export function playNotificationTone() {
 // Show native Android / System notification (muncul di Notification Bar / Tray HP)
 export function showBrowserNotification(title, options = {}) {
     if ('Notification' in window && Notification.permission === 'granted') {
+        const origin = window.location.origin || '';
         const notifOptions = {
-            icon: '/icon-192.png',
-            badge: '/icon-192.png',
+            icon: origin + '/icon-192.png',
+            badge: origin + '/icon-192.png',
+            image: options.image || undefined,
             vibrate: [200, 100, 200, 100, 200],
             requireInteraction: true,
             tag: options.tag || 'volabs-notification-' + Date.now(),
             renotify: true,
+            silent: false,
             ...options
         };
 

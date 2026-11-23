@@ -1,5 +1,5 @@
 // VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v15';
+const CACHE_NAME = 'volabs-pipd-cache-v16';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -81,7 +81,7 @@ self.addEventListener('fetch', (e) => {
 
 // Push Notification Event Listener (Web Push / Background FCM)
 self.addEventListener('push', (event) => {
-    let data = { title: 'VoLABS PIPD', body: 'Ada pembaruan tugas atau pengumuman baru.', url: '/' };
+    let data = { title: 'VoLabs PIPD', body: 'Ada pembaruan tugas atau pengumuman baru.', url: '/' };
     if (event.data) {
         try {
             data = event.data.json();
@@ -90,18 +90,23 @@ self.addEventListener('push', (event) => {
         }
     }
 
+    const title = data.title || 'VoLabs PIPD';
+    const origin = self.location.origin || '';
     const options = {
         body: data.body,
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
-        vibrate: [200, 100, 200],
+        icon: origin + '/icon-192.png',
+        badge: origin + '/icon-192.png',
+        vibrate: [200, 100, 200, 100, 200],
+        requireInteraction: true,
+        tag: 'volabs-fcm-' + Date.now(),
+        renotify: true,
         data: {
             url: data.url || '/'
         }
     };
 
     event.waitUntil(
-        self.registration.showNotification(data.title || 'VoLABS PIPD', options)
+        self.registration.showNotification(title, options)
     );
 });
 
