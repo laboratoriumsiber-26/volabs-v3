@@ -140,15 +140,24 @@ export async function initializeFcmToken() {
     }
 }
 
-// Save device info & FCM token for logged in user
+// Save device info & FCM token for user / device
 async function saveUserDeviceInfo(fcmToken = null) {
-    if (!db || !state.currentUser) return;
+    if (!db) return;
     try {
-        const username = state.currentUser.username || state.currentUser.nim || 'user';
+        let deviceKey = '';
+        if (state.currentUser) {
+            deviceKey = state.currentUser.username || state.currentUser.nim || 'user';
+        } else if (fcmToken) {
+            // Jika belum login, gunakan potongan token unik sebagai ID perangkat
+            deviceKey = 'anon_' + fcmToken.substring(fcmToken.length - 20);
+        } else {
+            return;
+        }
+
         const payload = {
-            username: username,
-            nama: state.currentUser.namaLengkap || state.currentUser.nama || '',
-            role: state.currentUser.role || '',
+            username: state.currentUser ? (state.currentUser.username || state.currentUser.nim || 'user') : 'guest',
+            nama: state.currentUser ? (state.currentUser.namaLengkap || state.currentUser.nama || '') : 'Guest / Belum Login',
+            role: state.currentUser ? (state.currentUser.role || '') : 'guest',
             notificationPermission: Notification.permission || 'default',
             lastActive: new Date().toISOString(),
             userAgent: navigator.userAgent
@@ -156,7 +165,7 @@ async function saveUserDeviceInfo(fcmToken = null) {
         if (fcmToken) {
             payload.fcmToken = fcmToken;
         }
-        await db.collection('user_devices').doc(username).set(payload, { merge: true });
+        await db.collection('user_devices').doc(deviceKey).set(payload, { merge: true });
     } catch (e) {
         console.warn("Save device info notice:", e);
     }
@@ -581,14 +590,15 @@ export function initNotifications() {
     listenToBroadcastAnnouncements();
     listenToStudioTaskAssignments();
 
-    // Auto-prompt permission politely after login if supported
-    if ('Notification' in window && state.currentUser) {
+    // Auto-prompt permission politely saat pertama kali web dibuka di Chrome/HP (sebelum install / login)
+    if ('Notification' in window) {
         if (Notification.permission === 'granted') {
             initializeFcmToken();
         } else if (Notification.permission === 'default') {
+            // Munculkan izin browser 1.5 detik setelah web dimuat
             setTimeout(() => {
                 requestNotificationPermission();
-            }, 3000);
+            }, 1500);
         }
     }
 }
