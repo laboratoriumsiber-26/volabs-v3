@@ -304,7 +304,7 @@ export async function sendBroadcastAnnouncement({ judul, pesan, tipe = 'info', t
 // Helper untuk memanggil Google Apps Script FCM Dispatcher di latar belakang
 export function dispatchPushViaGas({ title, body, url = '/', tokens = [] }) {
     try {
-        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbyzSYwVAU7MNzEznvLVKF9zOa2eGk7livRrIpkf1WUAeZxeRxwuQl4MC7fl7fluVVSA/exec";
+        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbzx6KRtnDIUGwD0hUdegP8XFl_bnwErmjIQA_03yQa4RwjvqSntNabCkNHR56VNboSK/exec";
         if (!gasUrl || !tokens || tokens.length === 0) return;
 
         fetch(gasUrl, {
