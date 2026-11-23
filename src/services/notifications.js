@@ -342,7 +342,7 @@ export function dispatchPushViaGas({ title, body, url = '/', tokens = [] }) {
             mode: "no-cors",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
-                action: "send_fcm_push",
+                action: "send_push",
                 title: title,
                 body: body,
                 url: url,
