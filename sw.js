@@ -1,5 +1,5 @@
-// VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v34';
+// VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android & iOS Devices)
+const CACHE_NAME = 'volabs-pipd-cache-v35';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -8,46 +8,6 @@ const ASSETS_TO_CACHE = [
     '/icon-512.png',
     '/logo.png'
 ];
-
-// Import Firebase SDK compat into main Service Worker so push works 100% reliably
-try {
-    importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
-    importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
-
-    firebase.initializeApp({
-        apiKey: "AIzaSyBgYq7GQi_T8faQlHDTwiPbu--AXWmtQHE",
-        authDomain: "volabs-3540a.firebaseapp.com",
-        projectId: "volabs-3540a",
-        storageBucket: "volabs-3540a.firebasestorage.app",
-        messagingSenderId: "443981213348",
-        appId: "1:443981213348:web:8ec75ee3755aa9eebfc031"
-    });
-
-    const messaging = firebase.messaging();
-    messaging.onBackgroundMessage((payload) => {
-        console.log('[sw.js FCM] Background message received: ', payload);
-        const title = (payload.notification && payload.notification.title) || (payload.data && payload.data.title) || 'VoLabs PIPD';
-        const body = (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || 'Pemberitahuan sistem terbaru.';
-        const url = (payload.data && payload.data.url) || '/';
-        const origin = self.location.origin || 'https://volabs.vercel.app';
-        const iconUrl = origin + '/icon-192.png';
-
-        const notificationOptions = {
-            body: body,
-            icon: iconUrl,
-            badge: iconUrl,
-            vibrate: [200, 100, 200, 100, 200],
-            requireInteraction: true,
-            tag: 'volabs-bg-' + Date.now(),
-            renotify: true,
-            data: { url: url }
-        };
-
-        self.registration.showNotification(title, notificationOptions);
-    });
-} catch (e) {
-    console.warn("FCM import scripts notice in sw.js:", e);
-}
 
 self.addEventListener('message', (event) => {
     if (event.data && event.data.action === 'skipWaiting') {
@@ -91,7 +51,7 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
-    // 2. Navigation fallback untuk SPA (Ketika refresh di route /jurnal, /absensi, dll.)
+    // 2. Navigation fallback untuk SPA
     if (e.request.mode === 'navigate') {
         e.respondWith(
             fetch(e.request).catch(async () => {
@@ -102,7 +62,7 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
-    // 3. Strategi Cache-First (Stale-While-Revalidate) untuk aset statis (Memastikan Lulus Uji Offline WebAPK Oppo/ColorOS)
+    // 3. Stale-While-Revalidate untuk aset statis
     e.respondWith(
         caches.match(e.request).then((cachedResponse) => {
             const fetchPromise = fetch(e.request).then((networkResponse) => {
@@ -113,50 +73,53 @@ self.addEventListener('fetch', (e) => {
                     });
                 }
                 return networkResponse;
-            }).catch(() => {
-                // Abaikan error network saat update background
-            });
-
-            // Kembalikan dari cache instan (0ms), atau tunggu dari network jika belum ada di cache
+            }).catch(() => {});
             return cachedResponse || fetchPromise;
         })
     );
 });
 
-// Push Notification Event Listener (Web Push / Background FCM)
+// PUSH NOTIFICATION HANDLER (100% Native Web Standard - Menjamin Muncul di Status Bar HP saat App Ditutup)
 self.addEventListener('push', (event) => {
-    let data = { title: 'VoLabs PIPD', body: 'Pemberitahuan tugas atau informasi operasional terbaru.', url: '/' };
+    let payload = { title: 'VoLabs PIPD', body: 'Ada pembaruan tugas atau pengumuman baru.', url: '/' };
+
     if (event.data) {
         try {
-            data = event.data.json();
-            // Handle FCM payload format
-            if (data.notification) {
-                data.title = data.notification.title || data.title;
-                data.body = data.notification.body || data.body;
+            const rawJson = event.data.json();
+            // Ekstrak dari format FCM v1 maupun format WebPush baku
+            if (rawJson.notification) {
+                payload.title = rawJson.notification.title || payload.title;
+                payload.body = rawJson.notification.body || payload.body;
             }
-            if (data.data) {
-                data.title = data.data.title || data.title;
-                data.body = data.data.body || data.body;
-                data.url = data.data.url || data.url;
+            if (rawJson.data) {
+                payload.title = rawJson.data.title || payload.title;
+                payload.body = rawJson.data.body || payload.body;
+                payload.url = rawJson.data.url || payload.url;
+            }
+            if (!rawJson.notification && !rawJson.data) {
+                payload.title = rawJson.title || payload.title;
+                payload.body = rawJson.body || payload.body;
+                payload.url = rawJson.url || payload.url;
             }
         } catch (e) {
-            data.body = event.data.text();
+            payload.body = event.data.text() || payload.body;
         }
     }
 
-    const title = data.title || 'VoLabs PIPD';
+    const title = payload.title || 'VoLabs PIPD';
     const origin = self.location.origin || 'https://volabs.vercel.app';
     const iconUrl = origin + '/icon-192.png';
+
     const options = {
-        body: data.body,
+        body: payload.body,
         icon: iconUrl,
         badge: iconUrl,
-        vibrate: [200, 100, 200, 100, 200],
+        vibrate: [300, 150, 300, 150, 300],
         requireInteraction: true,
-        tag: 'volabs-fcm-' + Date.now(),
+        tag: 'volabs-push-' + Date.now(),
         renotify: true,
         data: {
-            url: data.url || '/'
+            url: payload.url || '/'
         }
     };
 
@@ -165,7 +128,7 @@ self.addEventListener('push', (event) => {
     );
 });
 
-// Notification Click Event Listener (Buka aplikasi ke route yang sesuai)
+// Notification Click Handler
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
