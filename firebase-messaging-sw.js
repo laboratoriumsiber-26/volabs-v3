@@ -20,7 +20,7 @@ messaging.onBackgroundMessage((payload) => {
   const body = (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || 'Pemberitahuan sistem terbaru.';
   const url = (payload.data && payload.data.url) || '/';
 
-  const origin = self.location.origin || 'https://volabs-pipd.vercel.app';
+  const origin = self.location.origin || 'https://volabs.vercel.app';
   const iconUrl = origin + '/icon-192.png';
 
   const notificationOptions = {

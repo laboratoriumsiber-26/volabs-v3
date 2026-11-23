@@ -1,5 +1,5 @@
 // VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v31';
+const CACHE_NAME = 'volabs-pipd-cache-v32';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -29,7 +29,7 @@ try {
         const title = (payload.notification && payload.notification.title) || (payload.data && payload.data.title) || 'VoLabs PIPD';
         const body = (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || 'Pemberitahuan sistem terbaru.';
         const url = (payload.data && payload.data.url) || '/';
-        const origin = self.location.origin || 'https://volabs-pipd.vercel.app';
+        const origin = self.location.origin || 'https://volabs.vercel.app';
         const iconUrl = origin + '/icon-192.png';
 
         const notificationOptions = {
@@ -145,7 +145,7 @@ self.addEventListener('push', (event) => {
     }
 
     const title = data.title || 'VoLabs PIPD';
-    const origin = self.location.origin || 'https://volabs-pipd.vercel.app';
+    const origin = self.location.origin || 'https://volabs.vercel.app';
     const iconUrl = origin + '/icon-192.png';
     const options = {
         body: data.body,

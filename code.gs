@@ -149,7 +149,7 @@ function sendFcmPushNotification(payload) {
     }
   }
 
-  var origin = "https://volabs-pipd.vercel.app";
+  var origin = "https://volabs.vercel.app";
   var iconUrl = origin + "/icon-192.png";
 
   for (var j = 0; j < uniqueTokens.length; j++) {
