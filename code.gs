@@ -164,7 +164,20 @@ function sendFcmPushNotification(payload) {
         data: {
           title: title,
           body: body,
-          url: url
+          url: url,
+          icon: iconUrl,
+          badge: iconUrl
+        },
+        android: {
+          priority: "high",
+          notification: {
+            title: title,
+            body: body,
+            icon: iconUrl,
+            color: "#BC305F",
+            sound: "default",
+            click_action: url
+          }
         },
         webpush: {
           headers: {

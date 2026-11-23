@@ -807,11 +807,17 @@ export function dismissUserNotif(notifId, event) {
 }
 
 // Bersihkan semua tampilan notifikasi di user lokal
-export function clearAllUserLocalNotifs() {
-    if (!confirm('Bersihkan semua daftar notifikasi yang tampil?')) return;
-    const cards = document.querySelectorAll('.notif-item-card');
+export async function clearAllUserLocalNotifs() {
+    if (window.showCustomDialog) {
+        const confirmed = await window.showCustomDialog({
+            title: "Bersihkan Notifikasi",
+            message: "Apakah Anda yakin ingin membersihkan riwayat notifikasi dari tampilan perangkat Anda?",
+            confirmText: "Bersihkan",
+            confirmColor: "#ef4444"
+        });
+        if (!confirmed) return;
+    }
     const dismissed = new Set(JSON.parse(localStorage.getItem('volabs_dismissed_notifs') || '[]'));
-    // Tambahkan flag untuk reset
     localStorage.setItem('volabs_dismissed_notifs_time', String(Date.now()));
     renderNotificationCenter();
 }
