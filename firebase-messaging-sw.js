@@ -1,8 +1,5 @@
-// VoLabs PIPD - Unified Service Worker (FCM Background Messaging & PWA WebAPK)
-importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
-
-const CACHE_NAME = 'volabs-pipd-cache-v38';
+// VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android & iOS Devices)
+const CACHE_NAME = 'volabs-pipd-cache-v39';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -12,45 +9,6 @@ const ASSETS_TO_CACHE = [
     '/logo.png'
 ];
 
-// 1. Inisialisasi Firebase Messaging di Background Service Worker
-try {
-    firebase.initializeApp({
-        apiKey: "AIzaSyBgYq7GQi_T8faQlHDTwiPbu--AXWmtQHE",
-        authDomain: "volabs-3540a.firebaseapp.com",
-        projectId: "volabs-3540a",
-        storageBucket: "volabs-3540a.firebasestorage.app",
-        messagingSenderId: "443981213348",
-        appId: "1:443981213348:web:8ec75ee3755aa9eebfc031"
-    });
-
-    const messaging = firebase.messaging();
-
-    messaging.onBackgroundMessage((payload) => {
-        console.log('[SW FCM] Background message diterima:', payload);
-        const title = (payload.notification && payload.notification.title) || (payload.data && payload.data.title) || 'VoLabs PIPD';
-        const body = (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || 'Pembaruan tugas atau pengumuman.';
-        const url = (payload.data && payload.data.url) || '/';
-        const origin = self.location.origin || 'https://volabs.vercel.app';
-        const iconUrl = origin + '/icon-192.png';
-
-        const options = {
-            body: body,
-            icon: iconUrl,
-            badge: iconUrl,
-            vibrate: [300, 150, 300, 150, 300],
-            requireInteraction: true,
-            tag: 'volabs-push-' + Date.now(),
-            renotify: true,
-            data: { url: url }
-        };
-
-        return self.registration.showNotification(title, options);
-    });
-} catch (fbInitErr) {
-    console.warn('[SW FCM] Init notice:', fbInitErr);
-}
-
-// 2. Lifecycle Events
 self.addEventListener('message', (event) => {
     if (event.data && event.data.action === 'skipWaiting') {
         self.skipWaiting();
@@ -84,6 +42,7 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+    // Lewati cache secara mutlak untuk API Google Apps Script, Firebase & Request Eksternal
     if (e.request.url.includes('script.google.com') ||
         e.request.url.includes('exec') ||
         e.request.url.includes('action=') ||
@@ -92,6 +51,7 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
+    // Navigation fallback untuk SPA
     if (e.request.mode === 'navigate') {
         e.respondWith(
             fetch(e.request).catch(async () => {
@@ -102,6 +62,7 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
+    // Stale-While-Revalidate untuk aset statis
     e.respondWith(
         caches.match(e.request).then((cachedResponse) => {
             const fetchPromise = fetch(e.request).then((networkResponse) => {
@@ -118,13 +79,14 @@ self.addEventListener('fetch', (e) => {
     );
 });
 
-// 3. Native W3C WebPush Fallback Handler (Memastikan Notifikasi HP 100% Berbunyi saat App Closed)
+// PUSH NOTIFICATION HANDLER (100% Native Web Standard - Menjamin Muncul di Status Bar HP saat App Ditutup)
 self.addEventListener('push', (event) => {
     let payload = { title: 'VoLabs PIPD', body: 'Ada pembaruan tugas atau pengumuman baru.', url: '/' };
 
     if (event.data) {
         try {
             const rawJson = event.data.json();
+            // Ekstrak dari format FCM v1 maupun format WebPush baku
             if (rawJson.notification) {
                 payload.title = rawJson.notification.title || payload.title;
                 payload.body = rawJson.notification.body || payload.body;
@@ -166,7 +128,7 @@ self.addEventListener('push', (event) => {
     );
 });
 
-// 4. Notification Click Event Handler
+// Notification Click Handler
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
