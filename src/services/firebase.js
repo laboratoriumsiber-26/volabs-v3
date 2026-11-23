@@ -335,24 +335,33 @@ export async function saveStudioTask(task) {
                     });
 
                     let targetTokens = [];
+                    const statusLower = (task.status || '').toLowerCase();
+                    const hasRevisionWord = statusLower.includes('revisi') || (task.revisi && task.revisi !== '-' && task.revisi.trim() !== '');
+
                     let pushTitle = `Penugasan Video: ${targetEditor}`;
                     let pushBody = `Tugas baru "${task.judul || 'Materi Video'}" telah ditugaskan kepada Anda.`;
 
-                    if (task.status === 'Menunggu Review Admin' || task.status === 'Sedang Dikerjakan') {
-                        // Notifikasi diarahkan ke Administrator
+                    if (statusLower.includes('menunggu') || statusLower.includes('review')) {
+                        // Notifikasi ke Admin: Ada hasil edit yang siap direview
                         targetTokens = adminTokens;
-                        pushTitle = `Hasil Video: ${targetEditor}`;
-                        pushBody = `${targetEditor} telah memperbarui status tugas "${task.judul || 'Video'}" menjadi: ${task.status}.`;
-                    } else if (task.status === 'Perlu Revisi' || task.status === 'Revisi') {
-                        // Notifikasi diarahkan ke Editor
+                        pushTitle = `Hasil Video Masuk: ${targetEditor}`;
+                        pushBody = `${targetEditor} telah mengirimkan hasil edit video "${task.judul || 'Video'}" untuk direview.`;
+                    } else if (hasRevisionWord) {
+                        // Notifikasi ke Editor: Ada catatan revisi dari Admin
                         targetTokens = editorTokens;
-                        pushTitle = `Revisi Video: ${targetEditor}`;
-                        pushBody = `Materi "${task.judul || 'Video'}" memerlukan revisi: ${task.revisi || task.note || 'Silakan periksa catatan revisi di aplikasi.'}`;
-                    } else if (task.status === 'Selesai' || task.status === 'Disetujui') {
-                        // Notifikasi diarahkan ke Editor
+                        const revDetail = [task.revisi && task.revisi !== '-' ? task.revisi : '', task.note].filter(Boolean).join(': ');
+                        pushTitle = `Perlu Revisi Video: ${targetEditor}`;
+                        pushBody = `Materi "${task.judul || 'Video'}" ada revisi: ${revDetail || 'Silakan periksa detail revisi di aplikasi.'}`;
+                    } else if (statusLower.includes('selesai') || statusLower.includes('setuju') || statusLower.includes('approved')) {
+                        // Notifikasi ke Editor: Video disetujui / selesai
                         targetTokens = editorTokens;
-                        pushTitle = `Video Disetujui: ${targetEditor}`;
-                        pushBody = `Materi "${task.judul || 'Video'}" yang Anda kerjakan telah disetujui.`;
+                        pushTitle = `Video Selesai & Disetujui!`;
+                        pushBody = `Selamat! Video "${task.judul || 'Video'}" yang Anda edit telah disetujui oleh Admin.`;
+                    } else if (statusLower.includes('sedang')) {
+                        // Sedang dikerjakan -> beri info ke admin
+                        targetTokens = adminTokens;
+                        pushTitle = `Update Status: ${targetEditor}`;
+                        pushBody = `${targetEditor} sedang mengerjakan video "${task.judul || 'Video'}".`;
                     } else {
                         // Status default penugasan awal -> ke Editor
                         targetTokens = editorTokens;
@@ -477,7 +486,7 @@ export async function getAbsensiList(force = false) {
     // 2. Jika Firestore kosong atau permission denied, ambil langsung dari GAS Google Drive
     if (list.length === 0) {
         try {
-            const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbyM4Xp67IGIQptf5W-NSIa--CFNotHb2TE_bUOlBU-uC5P5tM8tav3nTmibkC5_PlzG/exec";
+            const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbyUoLHplV-EtQRfWlezqY6cIMZIzZm4ag-WMYqPoScTwoVp-XsGzL7MOITPn3SSpthy/exec";
             const res = await fetch(`${gasUrl}?action=get_absensi&t=${Date.now()}`);
             const json = await res.json();
             if (json && json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
@@ -533,7 +542,7 @@ export async function deleteAbsensiEntry(id) {
 
     // 3. Delete from Google Drive via GAS
     try {
-        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbyM4Xp67IGIQptf5W-NSIa--CFNotHb2TE_bUOlBU-uC5P5tM8tav3nTmibkC5_PlzG/exec";
+        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbyUoLHplV-EtQRfWlezqY6cIMZIzZm4ag-WMYqPoScTwoVp-XsGzL7MOITPn3SSpthy/exec";
         fetch(gasUrl, {
             method: "POST",
             mode: "no-cors",

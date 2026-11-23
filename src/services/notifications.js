@@ -329,7 +329,7 @@ export async function sendBroadcastAnnouncement({ judul, pesan, tipe = 'info', t
 // Helper untuk memanggil Google Apps Script FCM Dispatcher di latar belakang
 export function dispatchPushViaGas({ title, body, url = '/', tokens = [] }) {
     try {
-        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbyM4Xp67IGIQptf5W-NSIa--CFNotHb2TE_bUOlBU-uC5P5tM8tav3nTmibkC5_PlzG/exec";
+        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbyUoLHplV-EtQRfWlezqY6cIMZIzZm4ag-WMYqPoScTwoVp-XsGzL7MOITPn3SSpthy/exec";
         if (!gasUrl || !tokens || tokens.length === 0) {
             console.warn("dispatchPushViaGas skipped: token kosong atau gasUrl tidak ada");
             return;
@@ -470,29 +470,43 @@ export function listenToStudioTaskAssignments() {
                 }
             } else if (change.type === 'modified') {
                 // Notifikasi pembaruan status:
-                // Jika status perlu review -> tampilkan ke Admin
-                // Jika status revisi atau selesai -> tampilkan ke Volunteer yang bersangkutan
-                if (task.status === 'Menunggu Review Admin' && isUserAdmin) {
+                const statusLower = (task.status || '').toLowerCase();
+                const hasRev = statusLower.includes('revisi') || (task.revisi && task.revisi !== '-' && task.revisi.trim() !== '');
+
+                if ((statusLower.includes('menunggu') || statusLower.includes('review')) && isUserAdmin) {
                     showInAppToast(
-                        `Hasil Video: ${task.editor || task.editorName || 'Editor'}`,
+                        `Hasil Video Masuk: ${task.editor || task.editorName || 'Editor'}`,
                         `Editor telah mengunggah hasil edit video "${task.judul || 'Video'}".`,
                         'info',
                         () => { if (window.switchView) window.switchView('studio-editor'); }
                     );
-                } else if ((task.status === 'Perlu Revisi' || task.status === 'Revisi') && isForMe) {
+                    showBrowserNotification(`Hasil Video: ${task.editor || task.editorName || 'Editor'}`, {
+                        body: `Hasil video "${task.judul || 'Video'}" siap direview.`,
+                        data: { url: '/studio-editor' }
+                    });
+                } else if (hasRev && isForMe) {
+                    const revDetail = [task.revisi && task.revisi !== '-' ? task.revisi : '', task.note].filter(Boolean).join(': ');
                     showInAppToast(
-                        `Catatan Revisi: ${task.judul || 'Video'}`,
-                        `Materi video memerlukan revisi: ${task.note || task.revisi || 'Silakan cek aplikasi.'}`,
+                        `Perlu Revisi: ${task.judul || 'Video'}`,
+                        `Catatan revisi: ${revDetail || 'Silakan cek aplikasi.'}`,
                         'warning',
                         () => { if (window.switchView) window.switchView('studio-editor'); }
                     );
-                } else if (task.status === 'Selesai' && isForMe) {
+                    showBrowserNotification(`Revisi Video: ${task.judul || 'Video'}`, {
+                        body: `Catatan revisi: ${revDetail || 'Silakan cek aplikasi.'}`,
+                        data: { url: '/studio-editor' }
+                    });
+                } else if ((statusLower.includes('selesai') || statusLower.includes('setuju')) && isForMe) {
                     showInAppToast(
-                        `Video Disetujui: ${task.judul || 'Video'}`,
-                        `Materi video Anda telah disetujui.`,
+                        `Video Disetujui!`,
+                        `Materi video "${task.judul || 'Video'}" Anda telah disetujui.`,
                         'success',
                         () => { if (window.switchView) window.switchView('studio-editor'); }
                     );
+                    showBrowserNotification(`Video Selesai & Disetujui!`, {
+                        body: `Materi video "${task.judul || 'Video'}" Anda telah disetujui oleh Admin.`,
+                        data: { url: '/studio-editor' }
+                    });
                 }
             }
         });
