@@ -643,6 +643,7 @@ export async function renderNotificationCenter() {
 
     // Ambil daftar notifikasi lokal yang di-dismiss oleh user
     const dismissedLocal = new Set(JSON.parse(localStorage.getItem('volabs_dismissed_notifs') || '[]'));
+    const dismissedTime = parseInt(localStorage.getItem('volabs_dismissed_notifs_time') || '0', 10);
 
     let notifItems = [];
 
@@ -653,7 +654,8 @@ export async function renderNotificationCenter() {
             bcSnap.forEach(doc => {
                 const b = doc.data();
                 const bId = doc.id;
-                if (!dismissedLocal.has(bId)) {
+                const bTime = b.timestamp || 0;
+                if (!dismissedLocal.has(bId) && bTime > dismissedTime) {
                     notifItems.push({
                         id: bId,
                         type: 'broadcast',
@@ -682,7 +684,8 @@ export async function renderNotificationCenter() {
 
         if (isForMe || isAdmin) {
             const taskId = `task_${task.id}_${task.status}`;
-            if (!dismissedLocal.has(taskId)) {
+            const taskTime = task.updatedAt ? new Date(task.updatedAt).getTime() : 0;
+            if (!dismissedLocal.has(taskId) && taskTime > dismissedTime) {
                 let taskTitle = `Penugasan Video: ${assignedTo || 'Volunteer'}`;
                 let taskBody = `Tugas "${task.judul || 'Materi Video'}" sedang berstatus ${task.status}.`;
                 let badgeType = 'info';
@@ -806,20 +809,54 @@ export function dismissUserNotif(notifId, event) {
     renderNotificationCenter();
 }
 
-// Bersihkan semua tampilan notifikasi di user lokal
+// Bersihkan semua tampilan notifikasi (Bagi Admin: Pilihan Hapus Global dari Server atau Bersihkan Tampilan)
 export async function clearAllUserLocalNotifs() {
+    const isAdmin = state.currentUser && (state.currentUser.role === 'Super Admin' || state.currentUser.role === 'Admin' || state.currentUser.role === 'DPL');
+
     if (window.showCustomDialog) {
+        const dialogTitle = isAdmin ? "Hapus Seluruh Notifikasi" : "Bersihkan Riwayat Notifikasi";
+        const dialogMsg = isAdmin
+            ? "Sebagai Admin, Anda dapat menghapus seluruh pengumuman dari database (terhapus di semua relawan) sekaligus membersihkan riwayat tugas dari tampilan. Lanjutkan?"
+            : "Apakah Anda yakin ingin membersihkan seluruh riwayat notifikasi dari tampilan perangkat Anda?";
+
         const confirmed = await window.showCustomDialog({
-            title: "Bersihkan Notifikasi",
-            message: "Apakah Anda yakin ingin membersihkan riwayat notifikasi dari tampilan perangkat Anda?",
-            confirmText: "Bersihkan",
+            title: dialogTitle,
+            message: dialogMsg,
+            confirmText: isAdmin ? "Hapus Semua" : "Bersihkan",
             confirmColor: "#ef4444"
         });
         if (!confirmed) return;
     }
+
+    // Jika Admin: Hapus semua dokumen di Firestore collection broadcasts
+    if (isAdmin && db) {
+        try {
+            const snap = await db.collection('broadcasts').get();
+            const batch = db.batch();
+            snap.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        } catch (e) {
+            console.warn("Notice deleting all broadcasts from Firestore:", e);
+        }
+    }
+
+    // Dismiss semua ID yang ada di layar ke localStorage
     const dismissed = new Set(JSON.parse(localStorage.getItem('volabs_dismissed_notifs') || '[]'));
-    localStorage.setItem('volabs_dismissed_notifs_time', String(Date.now()));
+    const dismissedTime = Date.now();
+    localStorage.setItem('volabs_dismissed_notifs_time', String(dismissedTime));
+    localStorage.setItem('volabs_dismissed_notifs', JSON.stringify([...dismissed].slice(-300)));
+
     renderNotificationCenter();
+
+    if (window.showInAppToast) {
+        window.showInAppToast(
+            "Berhasil Dibersihkan",
+            isAdmin ? "Seluruh pengumuman sistem dan riwayat notifikasi telah dihapus." : "Riwayat notifikasi berhasil dibersihkan dari tampilan.",
+            "success"
+        );
+    }
 }
 
 // Admin menghapus pengumuman secara global (Terhapus dari semua volunteer)
