@@ -197,17 +197,22 @@ function sendFcmPushNotification(payload) {
         },
         android: {
           priority: "HIGH",
+          ttl: "86400s",
           notification: {
             title: title,
             body: body,
             icon: iconUrl,
             color: "#BC305F",
-            sound: "default"
+            sound: "default",
+            click_action: url,
+            notification_priority: "PRIORITY_MAX",
+            visibility: "PUBLIC"
           }
         },
         webpush: {
           headers: {
-            Urgency: "high"
+            Urgency: "high",
+            TTL: "86400"
           },
           notification: {
             title: title,

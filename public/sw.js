@@ -1,5 +1,5 @@
-// VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android & iOS Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v39';
+// VoLabs PIPD - Unified Service Worker (High-Priority Background Push for All Devices & Closed App)
+const CACHE_NAME = 'volabs-pipd-cache-v40';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -42,7 +42,6 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-    // Lewati cache secara mutlak untuk API Google Apps Script, Firebase & Request Eksternal
     if (e.request.url.includes('script.google.com') ||
         e.request.url.includes('exec') ||
         e.request.url.includes('action=') ||
@@ -51,7 +50,6 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
-    // Navigation fallback untuk SPA
     if (e.request.mode === 'navigate') {
         e.respondWith(
             fetch(e.request).catch(async () => {
@@ -62,7 +60,6 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
-    // Stale-While-Revalidate untuk aset statis
     e.respondWith(
         caches.match(e.request).then((cachedResponse) => {
             const fetchPromise = fetch(e.request).then((networkResponse) => {
@@ -79,14 +76,18 @@ self.addEventListener('fetch', (e) => {
     );
 });
 
-// PUSH NOTIFICATION HANDLER (100% Native Web Standard - Menjamin Muncul di Status Bar HP saat App Ditutup)
+// PUSH NOTIFICATION HANDLER (MENJAMIN BERBUNYI SAAT APLIKASI DITUTUP / CLOSE WINDOW)
 self.addEventListener('push', (event) => {
-    let payload = { title: 'VoLabs PIPD', body: 'Ada pembaruan tugas atau pengumuman baru.', url: '/' };
+    let payload = {
+        title: 'VoLabs PIPD',
+        body: 'Ada pembaruan tugas atau pengumuman baru.',
+        url: '/'
+    };
 
     if (event.data) {
         try {
             const rawJson = event.data.json();
-            // Ekstrak dari format FCM v1 maupun format WebPush baku
+            // Ekstrak dari struktur FCM v1 maupun WebPush murni
             if (rawJson.notification) {
                 payload.title = rawJson.notification.title || payload.title;
                 payload.body = rawJson.notification.body || payload.body;
@@ -102,7 +103,9 @@ self.addEventListener('push', (event) => {
                 payload.url = rawJson.url || payload.url;
             }
         } catch (e) {
-            payload.body = event.data.text() || payload.body;
+            try {
+                payload.body = event.data.text() || payload.body;
+            } catch (txtErr) {}
         }
     }
 

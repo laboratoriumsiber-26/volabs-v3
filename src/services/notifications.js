@@ -170,19 +170,19 @@ function urlBase64ToUint8Array(base64String) {
 async function saveUserDeviceInfo(fcmToken = null) {
     if (!db) return;
     try {
-        // Jangan simpan token untuk guest atau jika belum login!
-        if (!state.currentUser) {
-            console.log("Device token ditahan: Menunggu volunteer login.");
+        let deviceKey = '';
+        if (state.currentUser) {
+            deviceKey = state.currentUser.username || state.currentUser.nim || state.currentUser.namaLengkap;
+        } else if (fcmToken) {
+            deviceKey = 'anon_' + fcmToken.substring(fcmToken.length - 20);
+        } else {
             return;
         }
 
-        const deviceKey = state.currentUser.username || state.currentUser.nim || state.currentUser.namaLengkap;
-        if (!deviceKey) return;
-
         const payload = {
-            username: state.currentUser.username || state.currentUser.nim || 'user',
-            nama: state.currentUser.namaLengkap || state.currentUser.nama || '',
-            role: state.currentUser.role || 'Mahasiswa',
+            username: state.currentUser ? (state.currentUser.username || state.currentUser.nim || 'user') : 'guest',
+            nama: state.currentUser ? (state.currentUser.namaLengkap || state.currentUser.nama || '') : 'Guest User',
+            role: state.currentUser ? (state.currentUser.role || 'Mahasiswa') : 'guest',
             notificationPermission: Notification.permission || 'default',
             lastActive: new Date().toISOString(),
             userAgent: navigator.userAgent

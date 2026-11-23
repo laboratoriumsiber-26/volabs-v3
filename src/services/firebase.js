@@ -358,6 +358,17 @@ export async function saveStudioTask(task) {
                         targetTokens = editorTokens;
                     }
 
+                    if (targetTokens.length === 0 && editorTokens.length === 0) {
+                        // Fallback aman: Jika token editor khusus belum terdaftar dengan NIM/nama, ambil semua token aktif
+                        console.warn("Token editor spesifik belum cocok, mengirim ke seluruh perangkat terdaftar:", targetEditor);
+                        snap.forEach(doc => {
+                            const u = doc.data();
+                            if (u && u.fcmToken && String(u.fcmToken).length > 20) {
+                                targetTokens.push(u.fcmToken);
+                            }
+                        });
+                    }
+
                     if (targetTokens.length > 0 && typeof window.dispatchPushViaGas === 'function') {
                         console.log(`Menembak notifikasi penugasan video ke ${targetTokens.length} token untuk:`, targetEditor);
                         window.dispatchPushViaGas({
@@ -367,7 +378,7 @@ export async function saveStudioTask(task) {
                             tokens: [...new Set(targetTokens)]
                         });
                     } else {
-                        console.warn("Target token untuk editor tidak ditemukan:", targetEditor);
+                        console.warn("Target token untuk editor tidak ditemukan sama sekali:", targetEditor);
                     }
                 } catch (tokErr) {
                     console.warn("Error matching tokens in saveStudioTask:", tokErr);
