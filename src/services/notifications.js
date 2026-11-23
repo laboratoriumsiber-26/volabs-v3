@@ -767,7 +767,7 @@ export async function renderNotificationCenter() {
                         ${item.body}
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">
-                        ${item.author} • ${isBc ? 'Siaran Pengumuman' : 'Pembaruan Tugas'}
+                        ${(item.author && !item.author.toLowerCase().includes('admin')) ? (item.author + ' • ') : ''}${isBc ? 'Siaran Pengumuman' : 'Pembaruan Tugas'}
                     </div>
                 </div>
                 <div style="display: flex; gap: 4px; flex-shrink: 0;">

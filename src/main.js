@@ -345,9 +345,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 9. Initial Data Fetch
     refreshData();
 
-    // 10. Register Service Worker (PWA & FCM Background Messaging) with Seamless Background Auto-Update
+    // 10. Register Service Worker (PWA) with Seamless Background Auto-Update
     if ('serviceWorker' in navigator) {
-        // Register primary PWA Service Worker
         navigator.serviceWorker.register('/sw.js').then(reg => {
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
@@ -359,26 +358,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             });
-            // Actively check for latest server assets
             reg.update().catch(() => {});
         }).catch(err => {
             console.log('SW registration notice:', err);
-        });
-
-        // Register Firebase Messaging Background Service Worker secara eksplisit
-        navigator.serviceWorker.register('/firebase-messaging-sw.js').then(fcmReg => {
-            console.log('FCM Background SW registered successfully:', fcmReg.scope);
-        }).catch(err => {
-            console.log('FCM SW notice:', err);
-        });
-
-        // Auto-reload to apply new code when new SW takes control
-        let isRefreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (!isRefreshing) {
-                isRefreshing = true;
-                window.location.reload();
-            }
         });
     }
 });
