@@ -417,7 +417,7 @@ export async function getAbsensiList(force = false) {
     // 2. Jika Firestore kosong atau permission denied, ambil langsung dari GAS Google Drive
     if (list.length === 0) {
         try {
-            const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbz-sejP6KGFlssbss1npzZbS_6at7l-ddx4YclcJai-fFbHGZaxG81CKYXYRcwuH7x0/exec";
+            const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycby_c_e0dlZIlGPpnNHMDqn0YfGDJm-C1IU0AImvGiF65mOPlomKnpdZjvwJAzIbu11E/exec";
             const res = await fetch(`${gasUrl}?action=get_absensi&t=${Date.now()}`);
             const json = await res.json();
             if (json && json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
@@ -473,7 +473,7 @@ export async function deleteAbsensiEntry(id) {
 
     // 3. Delete from Google Drive via GAS
     try {
-        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbz-sejP6KGFlssbss1npzZbS_6at7l-ddx4YclcJai-fFbHGZaxG81CKYXYRcwuH7x0/exec";
+        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycby_c_e0dlZIlGPpnNHMDqn0YfGDJm-C1IU0AImvGiF65mOPlomKnpdZjvwJAzIbu11E/exec";
         fetch(gasUrl, {
             method: "POST",
             mode: "no-cors",
