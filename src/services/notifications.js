@@ -60,16 +60,16 @@ export function showBrowserNotification(title, options = {}) {
                 if (reg && reg.showNotification) {
                     reg.showNotification(title, notifOptions).catch(err => {
                         console.warn("SW showNotification fallback to new Notification:", err);
-                        try { new Notification(title, notifOptions); } catch (e) {}
+                        try { new Notification(title, notifOptions); } catch (e) { }
                     });
                 } else {
-                    try { new Notification(title, notifOptions); } catch (e) {}
+                    try { new Notification(title, notifOptions); } catch (e) { }
                 }
             }).catch(() => {
-                try { new Notification(title, notifOptions); } catch (e) {}
+                try { new Notification(title, notifOptions); } catch (e) { }
             });
         } else {
-            try { new Notification(title, notifOptions); } catch (e) {}
+            try { new Notification(title, notifOptions); } catch (e) { }
         }
     }
 }
@@ -211,7 +211,7 @@ export function showInAppToast(title, message, type = 'info', actionCallback = n
         font-family: inherit;
     `;
 
-    const iconSvg = type === 'task' 
+    const iconSvg = type === 'task'
         ? `<svg style="width:20px;height:20px;color:#8b5cf6;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>`
         : `<svg style="width:20px;height:20px;color:#BC305F;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>`;
 
@@ -582,6 +582,279 @@ export async function handleSubmitBroadcast() {
     }
 }
 
+// -------------------------------------------------------------
+// FITUR PUSAT NOTIFIKASI (INSTAGRAM STYLE NOTIFICATION CENTER)
+// -------------------------------------------------------------
+let currentNotifCenterTab = 'all';
+
+export function openNotificationCenterModal() {
+    const modal = document.getElementById('modal-notif-center');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+
+    // Sembunyikan badge merah header & nav setelah dibuka
+    const badge = document.getElementById('header-notif-badge');
+    if (badge) badge.style.display = 'none';
+    const navDot = document.getElementById('nav-notif-dot');
+    if (navDot) navDot.style.display = 'none';
+    const mobDot = document.getElementById('mobile-notif-dot');
+    if (mobDot) mobDot.style.display = 'none';
+
+    renderNotificationCenter();
+}
+
+export function closeNotificationCenterModal() {
+    const modal = document.getElementById('modal-notif-center');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+    }
+}
+
+export function switchNotifTab(tab) {
+    currentNotifCenterTab = tab;
+    ['all', 'personal', 'broadcast'].forEach(t => {
+        const btn = document.getElementById(`notif-tab-${t}`);
+        if (btn) {
+            if (t === tab) {
+                btn.classList.add('active');
+                btn.style.color = 'var(--primary)';
+                btn.style.borderBottom = '2px solid var(--primary)';
+            } else {
+                btn.classList.remove('active');
+                btn.style.color = 'var(--text-muted)';
+                btn.style.borderBottom = '2px solid transparent';
+            }
+        }
+    });
+    renderNotificationCenter();
+}
+
+export async function renderNotificationCenter() {
+    const container = document.getElementById('notif-center-list');
+    if (!container) return;
+
+    container.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px;">Memuat riwayat pemberitahuan...</div>';
+
+    const currentUser = state.currentUser;
+    const currentName = currentUser ? (currentUser.namaLengkap || currentUser.nama || currentUser.username || '').toLowerCase().trim() : '';
+    const isAdmin = currentUser && (currentUser.role === 'Super Admin' || currentUser.role === 'Admin' || currentUser.role === 'DPL');
+
+    // Ambil daftar notifikasi lokal yang di-dismiss oleh user
+    const dismissedLocal = new Set(JSON.parse(localStorage.getItem('volabs_dismissed_notifs') || '[]'));
+
+    let notifItems = [];
+
+    // 1. Ambil Broadcast dari Firestore
+    if (db) {
+        try {
+            const bcSnap = await db.collection('broadcasts').orderBy('timestamp', 'desc').limit(25).get();
+            bcSnap.forEach(doc => {
+                const b = doc.data();
+                const bId = doc.id;
+                if (!dismissedLocal.has(bId)) {
+                    notifItems.push({
+                        id: bId,
+                        type: 'broadcast',
+                        tipe: b.tipe || 'info',
+                        title: b.judul || 'Pengumuman Resmi',
+                        body: b.pesan || '',
+                        author: b.pengirim || 'Admin VoLabs',
+                        timestamp: b.timestamp || Date.now(),
+                        createdAt: b.createdAt || new Date().toISOString(),
+                        canAdminDelete: true,
+                        url: '/'
+                    });
+                }
+            });
+        } catch (e) {
+            console.warn("Notice loading broadcasts for notif center:", e);
+        }
+    }
+
+    // 2. Ambil Penugasan & Revisi Studio Video dari state/localStorage
+    const tasks = state.allEditorTasks || JSON.parse(localStorage.getItem('volabs_editor_tasks') || '[]');
+    tasks.forEach(task => {
+        const assignedTo = (task.editor || task.assignedEditor || task.editorName || task.assignedTo || '').trim();
+        const assignedLower = assignedTo.toLowerCase();
+        const isForMe = currentName && (assignedLower === currentName || currentName.includes(assignedLower) || assignedLower.includes(currentName));
+
+        if (isForMe || isAdmin) {
+            const taskId = `task_${task.id}_${task.status}`;
+            if (!dismissedLocal.has(taskId)) {
+                let taskTitle = `Penugasan Video: ${assignedTo || 'Volunteer'}`;
+                let taskBody = `Tugas "${task.judul || 'Materi Video'}" sedang berstatus ${task.status}.`;
+                let badgeType = 'info';
+
+                if (task.status === 'Perlu Revisi' || task.status === 'Revisi') {
+                    taskTitle = `Revisi Video: ${assignedTo || 'Volunteer'}`;
+                    taskBody = `Catatan revisi: ${task.note || task.revisi || 'Silakan cek perbaikan video.'}`;
+                    badgeType = 'warning';
+                } else if (task.status === 'Menunggu Review Admin') {
+                    taskTitle = `Hasil Video: ${assignedTo || 'Volunteer'}`;
+                    taskBody = `Editor telah mengunggah hasil edit untuk "${task.judul || 'Video'}".`;
+                    badgeType = 'info';
+                } else if (task.status === 'Selesai') {
+                    taskTitle = `Video Disetujui: ${assignedTo || 'Volunteer'}`;
+                    taskBody = `Materi video "${task.judul || 'Video'}" telah disetujui.`;
+                    badgeType = 'success';
+                }
+
+                notifItems.push({
+                    id: taskId,
+                    type: 'task',
+                    tipe: badgeType,
+                    title: taskTitle,
+                    body: taskBody,
+                    author: task.tipe || 'Studio Video',
+                    timestamp: task.updatedAt ? new Date(task.updatedAt).getTime() : Date.now(),
+                    createdAt: task.updatedAt || new Date().toISOString(),
+                    canAdminDelete: false,
+                    url: '/studio-editor'
+                });
+            }
+        }
+    });
+
+    // Urutkan dari yang paling baru
+    notifItems.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Filter berdasarkan Tab
+    if (currentNotifCenterTab === 'personal') {
+        notifItems = notifItems.filter(x => x.type === 'task');
+    } else if (currentNotifCenterTab === 'broadcast') {
+        notifItems = notifItems.filter(x => x.type === 'broadcast');
+    }
+
+    if (notifItems.length === 0) {
+        container.innerHTML = `
+            <div style="padding: 40px 20px; text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-tertiary); color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                    <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                </div>
+                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">Tidak Ada Notifikasi</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Semua pemberitahuan tugas dan pengumuman terbaru telah dibaca.</div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = notifItems.map(item => {
+        const timeAgo = formatTimeAgo(item.timestamp);
+        const isBc = item.type === 'broadcast';
+        const iconBg = item.tipe === 'warning' ? 'rgba(245, 158, 11, 0.12)' : (item.tipe === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(188, 48, 95, 0.12)');
+        const iconColor = item.tipe === 'warning' ? '#f59e0b' : (item.tipe === 'success' ? '#10b981' : '#BC305F');
+
+        return `
+            <div class="notif-item-card" style="display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 12px; background: var(--bg-primary); border: 1px solid var(--border-color); transition: all 0.2s ease; position: relative;">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: ${iconBg}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                    <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        ${isBc
+                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>'
+                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>'
+            }
+                    </svg>
+                </div>
+                <div style="flex: 1; min-width: 0; cursor: pointer;" onclick="handleNotifItemClick('${item.url}')">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 6px; margin-bottom: 2px;">
+                        <span style="font-weight: 700; font-size: 13px; color: var(--text-primary); line-height: 1.3;">${item.title}</span>
+                        <span style="font-size: 11px; color: var(--text-muted); flex-shrink: 0;">${timeAgo}</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; word-break: break-word; margin-bottom: 4px;">
+                        ${item.body}
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted);">
+                        ${item.author} • ${isBc ? 'Siaran Pengumuman' : 'Pembaruan Tugas'}
+                    </div>
+                </div>
+                <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                    ${isAdmin && item.canAdminDelete ? `
+                        <button type="button" class="icon-btn" title="Hapus Pengumuman Global (Admin)" onclick="deleteBroadcastGlobal('${item.id}', event)" style="width: 26px; height: 26px; color: #ef4444; padding: 0;">
+                            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    ` : ''}
+                    <button type="button" class="icon-btn" title="Hapus dari tampilan saya" onclick="dismissUserNotif('${item.id}', event)" style="width: 26px; height: 26px; color: var(--text-muted); padding: 0;">
+                        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+export function handleNotifItemClick(url) {
+    closeNotificationCenterModal();
+    if (url && typeof window.switchView === 'function') {
+        const view = url.replace('/', '');
+        window.switchView(view || 'dasbor');
+    }
+}
+
+// User menghapus notifikasi dari tampilannya sendiri
+export function dismissUserNotif(notifId, event) {
+    if (event) event.stopPropagation();
+    const dismissed = new Set(JSON.parse(localStorage.getItem('volabs_dismissed_notifs') || '[]'));
+    dismissed.add(notifId);
+    localStorage.setItem('volabs_dismissed_notifs', JSON.stringify([...dismissed].slice(-200)));
+    renderNotificationCenter();
+}
+
+// Bersihkan semua tampilan notifikasi di user lokal
+export function clearAllUserLocalNotifs() {
+    if (!confirm('Bersihkan semua daftar notifikasi yang tampil?')) return;
+    const cards = document.querySelectorAll('.notif-item-card');
+    const dismissed = new Set(JSON.parse(localStorage.getItem('volabs_dismissed_notifs') || '[]'));
+    // Tambahkan flag untuk reset
+    localStorage.setItem('volabs_dismissed_notifs_time', String(Date.now()));
+    renderNotificationCenter();
+}
+
+// Admin menghapus pengumuman secara global (Terhapus dari semua volunteer)
+export async function deleteBroadcastGlobal(broadcastId, event) {
+    if (event) event.stopPropagation();
+    if (!window.showCustomDialog) return;
+
+    const confirmed = await window.showCustomDialog({
+        title: "Hapus Pengumuman Global",
+        message: "Pengumuman ini akan dihapus secara permanen dari Firestore dan hilang dari seluruh perangkat relawan. Lanjutkan?",
+        confirmText: "Hapus Permanen",
+        confirmColor: "#ef4444"
+    });
+
+    if (!confirmed) return;
+
+    if (db) {
+        try {
+            await db.collection('broadcasts').doc(broadcastId).delete();
+            renderNotificationCenter();
+            showInAppToast('Pengumuman Dihapus', 'Pengumuman telah berhasil dihapus dari sistem untuk seluruh relawan.', 'info');
+        } catch (err) {
+            console.error("Gagal menghapus broadcast:", err);
+            window.showCustomDialog({
+                title: "Gagal Menghapus",
+                message: "Terjadi kesalahan saat menghapus pengumuman: " + err.toString(),
+                confirmText: "Tutup"
+            });
+        }
+    }
+}
+
+function formatTimeAgo(timestamp) {
+    if (!timestamp) return 'Baru saja';
+    const diff = Math.floor((Date.now() - timestamp) / 1000);
+    if (diff < 60) return 'Baru saja';
+    if (diff < 3600) return `${Math.floor(diff / 60)} mnt lalu`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
+    return `${Math.floor(diff / 86400)} hari lalu`;
+}
+
 // Global initialization
 export function initNotifications() {
     window.requestNotificationPermission = requestNotificationPermission;
@@ -589,6 +862,14 @@ export function initNotifications() {
     window.closeBroadcastModal = closeBroadcastModal;
     window.handleSubmitBroadcast = handleSubmitBroadcast;
     window.dispatchPushViaGas = dispatchPushViaGas;
+    window.openNotificationCenterModal = openNotificationCenterModal;
+    window.closeNotificationCenterModal = closeNotificationCenterModal;
+    window.switchNotifTab = switchNotifTab;
+    window.renderNotificationCenter = renderNotificationCenter;
+    window.handleNotifItemClick = handleNotifItemClick;
+    window.dismissUserNotif = dismissUserNotif;
+    window.clearAllUserLocalNotifs = clearAllUserLocalNotifs;
+    window.deleteBroadcastGlobal = deleteBroadcastGlobal;
 
     // Start background listeners
     listenToBroadcastAnnouncements();
