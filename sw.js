@@ -1,5 +1,5 @@
 // VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v27';
+const CACHE_NAME = 'volabs-pipd-cache-v28';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -8,6 +8,46 @@ const ASSETS_TO_CACHE = [
     '/icon-512.png',
     '/logo.png'
 ];
+
+// Import Firebase SDK compat into main Service Worker so push works 100% reliably
+try {
+    importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+    importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
+
+    firebase.initializeApp({
+        apiKey: "AIzaSyBgYq7GQi_T8faQlHDTwiPbu--AXWmtQHE",
+        authDomain: "volabs-3540a.firebaseapp.com",
+        projectId: "volabs-3540a",
+        storageBucket: "volabs-3540a.firebasestorage.app",
+        messagingSenderId: "443981213348",
+        appId: "1:443981213348:web:8ec75ee3755aa9eebfc031"
+    });
+
+    const messaging = firebase.messaging();
+    messaging.onBackgroundMessage((payload) => {
+        console.log('[sw.js FCM] Background message received: ', payload);
+        const title = (payload.notification && payload.notification.title) || (payload.data && payload.data.title) || 'VoLabs PIPD';
+        const body = (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || 'Pemberitahuan sistem terbaru.';
+        const url = (payload.data && payload.data.url) || '/';
+        const origin = self.location.origin || 'https://volabs-pipd.vercel.app';
+        const iconUrl = origin + '/icon-192.png';
+
+        const notificationOptions = {
+            body: body,
+            icon: iconUrl,
+            badge: iconUrl,
+            vibrate: [200, 100, 200, 100, 200],
+            requireInteraction: true,
+            tag: 'volabs-bg-' + Date.now(),
+            renotify: true,
+            data: { url: url }
+        };
+
+        self.registration.showNotification(title, notificationOptions);
+    });
+} catch (e) {
+    console.warn("FCM import scripts notice in sw.js:", e);
+}
 
 self.addEventListener('message', (event) => {
     if (event.data && event.data.action === 'skipWaiting') {

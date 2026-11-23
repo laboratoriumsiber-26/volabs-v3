@@ -855,8 +855,54 @@ function formatTimeAgo(timestamp) {
     return `${Math.floor(diff / 86400)} hari lalu`;
 }
 
+// Helper Tes Langsung Notifikasi Push ke Perangkat Ini (Bisa Dites Saat Ditutup)
+export async function testSendSelfPush() {
+    try {
+        let token = await initializeFcmToken();
+        if (!token && db && state.currentUser) {
+            const username = state.currentUser.username || state.currentUser.nim || 'user';
+            const doc = await db.collection('user_devices').doc(username).get();
+            if (doc.exists && doc.data().fcmToken) {
+                token = doc.data().fcmToken;
+            }
+        }
+
+        if (!token) {
+            if (window.showCustomDialog) {
+                window.showCustomDialog({
+                    title: "Token Belum Siap",
+                    message: "Izin notifikasi belum diizinkan atau token perangkat belum terbentuk. Pastikan telah menekan Izinkan saat Chrome meminta izin.",
+                    confirmText: "Mengerti"
+                });
+            }
+            return;
+        }
+
+        if (window.showCustomDialog) {
+            window.showCustomDialog({
+                title: "Uji Notifikasi Dimulai",
+                message: "Notifikasi akan dikirim dalam 5 detik. Segera tutup aplikasi / kunci layar HP Anda sekarang untuk menguji!",
+                confirmText: "Siap, Kunci Layar Sekarang"
+            });
+        }
+
+        // Beri jeda 5 detik agar user sempat menutup aplikasi atau mengunci HP
+        setTimeout(() => {
+            dispatchPushViaGas({
+                title: "Uji Notifikasi VoLabs",
+                body: "Notifikasi latar belakang berhasil diterima saat aplikasi ditutup!",
+                url: "/",
+                tokens: [token]
+            });
+        }, 5000);
+    } catch (e) {
+        console.error("testSendSelfPush error:", e);
+    }
+}
+
 // Global initialization
 export function initNotifications() {
+    window.testSendSelfPush = testSendSelfPush;
     window.requestNotificationPermission = requestNotificationPermission;
     window.openBroadcastModal = openBroadcastModal;
     window.closeBroadcastModal = closeBroadcastModal;

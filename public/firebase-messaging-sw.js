@@ -4,12 +4,12 @@ importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js'
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey: "AIzaSyDa-placeholder",
+  apiKey: "AIzaSyBgYq7GQi_T8faQlHDTwiPbu--AXWmtQHE",
   authDomain: "volabs-3540a.firebaseapp.com",
   projectId: "volabs-3540a",
-  storageBucket: "volabs-3540a.appspot.com",
+  storageBucket: "volabs-3540a.firebasestorage.app",
   messagingSenderId: "443981213348",
-  appId: "1:443981213348:web:779df522d0bba60f64b4c7"
+  appId: "1:443981213348:web:8ec75ee3755aa9eebfc031"
 });
 
 const messaging = firebase.messaging();
