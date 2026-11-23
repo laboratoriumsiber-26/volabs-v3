@@ -197,22 +197,17 @@ function sendFcmPushNotification(payload) {
         },
         android: {
           priority: "HIGH",
-          ttl: "86400s",
           notification: {
             title: title,
             body: body,
             icon: iconUrl,
             color: "#BC305F",
-            sound: "default",
-            click_action: url,
-            notification_priority: "PRIORITY_MAX",
-            visibility: "PUBLIC"
+            sound: "default"
           }
         },
         webpush: {
           headers: {
-            Urgency: "high",
-            TTL: "86400"
+            Urgency: "high"
           },
           notification: {
             title: title,
@@ -222,8 +217,7 @@ function sendFcmPushNotification(payload) {
             vibrate: [300, 150, 300, 150, 300],
             requireInteraction: true,
             tag: "volabs-push-" + new Date().getTime(),
-            renotify: true,
-            silent: false
+            renotify: true
           },
           fcm_options: {
             link: url
