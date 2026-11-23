@@ -1,14 +1,20 @@
 /**
  * ============================================================================
- * VOLABS PIPD - GOOGLE DRIVE PHOTO STORAGE (2-WAY BIDIRECTIONAL SYNC)
+ * VOLABS PIPD - GOOGLE DRIVE PHOTO STORAGE & FCM PUSH NOTIFICATION DISPATCHER
  * ============================================================================
- * Fitur Sinkronisasi Segala Arah:
  * 1. Otomatis menyimpan foto ke folder: "VoLABS PIPD - Absensi/[Nama Volunteer]".
  * 2. Di Web dihapus oleh Admin -> Foto di Google Drive otomatis dipindahkan ke Sampah (Trash).
  * 3. Di Google Drive dihapus -> Sistem mendeteksi & menghapus presensi di Web.
- * 4. Tanpa Spreadsheet, 100% Google Drive murni terhubung ke Cloud Firestore.
+ * 4. FCM Push Notification HTTP v1: Menembak notifikasi ke HP relawan walau app tertutup.
  * ============================================================================
  */
+
+// Kredensial Firebase Service Account untuk FCM HTTP v1
+var FIREBASE_SERVICE_ACCOUNT = {
+  "project_id": "volabs-3540a",
+  "client_email": "firebase-adminsdk-fbsvc@volabs-3540a.iam.gserviceaccount.com",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBOdnEMQFjxGbo\n3UFxgN1eIjR/FiDvJ3+p2UrF6LzYecasUdMYFaLES9R0AR1h/ibepRjNl6uQ12NY\no5E445bNCCMXvMrcLvFkUxXA/3E4qjX8FckfDAZBPWHe8lmto4zpDM2hDYoUeW+x\nbYrAdTXTxyfokceXou1VL9GPIzI0zuA8Q7w5agDsaSRPlfK4RZEjxxKk/hsE5JLe\n15cOYew4cfLxewl0py5ZRgFszMp/FXUAg6ezNFgW/iePckwPkpoi33oZdyayaCUS\nLqXbNyXnzl0wInPA7jzJ/EVfu+BMrmMNMp7hArd0O7jn+rKQ/ZXqrGJB6Hn5NTGY\n3Lpr9Ra3AgMBAAECggEADCcKsCq/Qjp4mNqzImPCO6JkSz3lpZG5Y/UbnWWtQuKR\nATngNrQqcxtF0GOL9b0zTdUNjn8K6YAlnZrwwXNm6TXcZyjJ8jeUADhNg1oaRKZH\n4OpJ2bihSBPuBnfKXH/1yjTlvEq95w3AKmUphEABU6fdHBgKRcCXs3NF3cr1fgA/\n4l1MRyqUlCGtXEM1BYyVQYlSRVqiELX+K5Sigvvzx6+BG3029RSiktYaPU1wmhqd\n9mQYaH55LV0XmvedHz+yHgBfJXmMgCi1+DWebLYQMwZGhX+jP+KS8a2+/8wdGL4B\nl56HMO7j2NI5TDUHX5GgIO9KVOehB8QdtnUDMocycQKBgQD60uRqyzOA9+MbYJRF\nrRlSMxXXuQCIuBxhKokYE3IICnvjXcVeksFdXIcG/X/71c/nCIe4ET1XDefXFzC0\nKDMixNz2HTrHZL1k7pJRqEcLSK5YXDCkwaY9x0Zt/N0unO9Esp/gTk6TI1yd0w1P\nBxYT8DpJSoexdONxh14sqFKmHwKBgQDFNqr2xcUt9vE9yryuJuKvE4/D92ZPf8to\nBryyNNS2+XL8pYop45M7r41vgm/hPDhL4mqW0VlLAThKLj8HaPfPDw02xM3VJFOg\n9ydmmZX6LtPm1LrLvC1sl5Eq4Fj0ouVk4gmVLhHqOZBbXMeA8O4yboz5XZyPkDwx\nkU50DgqMaQKBgAXAlmp4lIrNpJC5K01Zxe3jrAmRfZilGEmGLzS1JXVXwDWbre4Y\nUYTxnUskvy2oXqc+w9YN1ylK8Vk2d/B5x4pxl1uxmep+vfU1n3dt84sntI/kNV1h\n740VJ+FX3j62bKpXqmD7isPHGNWpxHFeiTwV01Bg/DGuq5Sr9RXzGkojAoGBAKin\nPcHYE+5hFqHPdVhBrO4ofnQKaRZnpZ4K1OhZwefQoANr1iJImqsaUIwiMmeeRk6v\nDJR56DD6lBbsQb6mh/YtWxGRcK1saZBojOtzQQ05asIm/rAo93e8jsrqHWjoveBu\nZd+MDIoQPGHFkF+2qx256RmActlbcf650yvwrhixAoGBAJQzgfvN7jyV+ZjXGXCZ\nvUgYA/NGLP4ijRCuxhHE9+vw9ZV1/kqfuEYP5U5LhHMdVeMV0tLeifW4Zn7TdyPO\ndhThC4XMmoUzHFOBlB8p5QhQjZf4UtQX7IPs58NVBDgdIywlt5EN/66EF6TT/k/Q\nqykVoud6eWDx/cSaFBa4bm9G\n-----END PRIVATE KEY-----\n"
+};
 
 /**
  * Endpoint GET - Tes koneksi & ambil daftar foto aktif untuk sinkronisasi dua arah
@@ -26,9 +32,18 @@ function doGet(e) {
       });
     }
 
+    // Tes FCM OAuth2 token
+    if (action === "test_fcm_auth") {
+      var token = getFcmOAuthToken();
+      return outputJson({
+        status: "success",
+        token: token ? (token.substring(0, 15) + "...") : "null"
+      });
+    }
+
     return outputJson({
       status: "active",
-      service: "VoLABS PIPD 2-Way Drive Photo Storage",
+      service: "VoLABS PIPD Drive Photo & FCM Push Service",
       timestamp: new Date().toISOString()
     });
   } catch (err) {
@@ -40,7 +55,7 @@ function doGet(e) {
 }
 
 /**
- * Endpoint POST - Menerima foto baru atau menghapus foto saat presensi dihapus di web
+ * Endpoint POST - Menerima foto baru, menghapus foto, atau mengirim Push Notification FCM
  */
 function doPost(e) {
   try {
@@ -58,7 +73,13 @@ function doPost(e) {
     var action = payload.action || "";
     var data = payload.data || payload;
 
-    // Aksi 1: Hapus foto dari Google Drive saat admin menghapus di Web
+    // Aksi 1: Push Notifikasi FCM ke HP relawan walau aplikasi tertutup
+    if (action === "send_fcm_push") {
+      var pushResult = sendFcmPushNotification(payload);
+      return outputJson(pushResult);
+    }
+
+    // Aksi 2: Hapus foto dari Google Drive saat admin menghapus di Web
     if (action === "delete_absensi" || action === "delete_foto") {
       var delRes = deletePhotoFromDrive(payload);
       return outputJson({
@@ -68,7 +89,7 @@ function doPost(e) {
       });
     }
 
-    // Aksi 2: Simpan foto baru ke folder volunteer
+    // Aksi 3: Simpan foto baru ke folder volunteer
     if (!data.foto || typeof data.foto !== "string" || data.foto.length < 50) {
       return outputJson({
         status: "error",
@@ -91,6 +112,165 @@ function doPost(e) {
       status: "error",
       message: "Gagal memproses request: " + err.toString()
     });
+  }
+}
+
+/**
+ * Mengirim Push Notification FCM HTTP v1 ke satu atau banyak token perangkat HP
+ */
+function sendFcmPushNotification(payload) {
+  var tokens = payload.tokens || [];
+  if (payload.token) tokens.push(payload.token);
+
+  if (!tokens || tokens.length === 0) {
+    return { status: "error", message: "Token FCM tidak ditemukan" };
+  }
+
+  var title = payload.title || "VoLabs PIPD";
+  var body = payload.body || "Ada pembaruan tugas atau pengumuman baru.";
+  var url = payload.url || "/";
+
+  var accessToken = getFcmOAuthToken();
+  if (!accessToken) {
+    return { status: "error", message: "Gagal membuat Access Token FCM v1" };
+  }
+
+  var fcmEndpoint = "https://fcm.googleapis.com/v1/projects/" + FIREBASE_SERVICE_ACCOUNT.project_id + "/messages:send";
+  var successCount = 0;
+  var failCount = 0;
+  var errors = [];
+
+  // Deduplikasi token
+  var uniqueTokens = [];
+  for (var i = 0; i < tokens.length; i++) {
+    var t = String(tokens[i]).trim();
+    if (t && uniqueTokens.indexOf(t) === -1) {
+      uniqueTokens.push(t);
+    }
+  }
+
+  for (var j = 0; j < uniqueTokens.length; j++) {
+    var targetToken = uniqueTokens[j];
+    var messagePayload = {
+      message: {
+        token: targetToken,
+        notification: {
+          title: title,
+          body: body
+        },
+        data: {
+          title: title,
+          body: body,
+          url: url
+        },
+        webpush: {
+          headers: {
+            Urgency: "high"
+          },
+          notification: {
+            title: title,
+            body: body,
+            icon: "/icon-192.png",
+            badge: "/icon-192.png",
+            vibrate: [200, 100, 200, 100, 200],
+            requireInteraction: true,
+            tag: "volabs-push-" + new Date().getTime(),
+            renotify: true
+          },
+          fcm_options: {
+            link: url
+          }
+        }
+      }
+    };
+
+    var options = {
+      method: "post",
+      contentType: "application/json",
+      headers: {
+        Authorization: "Bearer " + accessToken
+      },
+      payload: JSON.stringify(messagePayload),
+      muteHttpExceptions: true
+    };
+
+    try {
+      var res = UrlFetchApp.fetch(fcmEndpoint, options);
+      var code = res.getResponseCode();
+      if (code === 200) {
+        successCount++;
+      } else {
+        failCount++;
+        errors.push({ token: targetToken.substring(0, 15) + "...", error: res.getContentText() });
+      }
+    } catch (e) {
+      failCount++;
+      errors.push({ token: targetToken.substring(0, 15) + "...", error: e.toString() });
+    }
+  }
+
+  return {
+    status: successCount > 0 ? "success" : (failCount > 0 ? "partial_error" : "error"),
+    total: uniqueTokens.length,
+    successCount: successCount,
+    failCount: failCount,
+    errors: errors
+  };
+}
+
+/**
+ * Generate Google OAuth2 Access Token untuk FCM v1 menggunakan JWT RS256
+ */
+function getFcmOAuthToken() {
+  var cache = CacheService.getScriptCache();
+  var cachedToken = cache.get("fcm_oauth_token");
+  if (cachedToken) {
+    return cachedToken;
+  }
+
+  var now = Math.floor(new Date().getTime() / 1000);
+  var exp = now + 3600; // 1 jam
+
+  var header = {
+    alg: "RS256",
+    typ: "JWT"
+  };
+
+  var claimSet = {
+    iss: FIREBASE_SERVICE_ACCOUNT.client_email,
+    scope: "https://www.googleapis.com/auth/firebase.messaging",
+    aud: "https://oauth2.googleapis.com/token",
+    exp: exp,
+    iat: now
+  };
+
+  var headerEncoded = Utilities.base64EncodeWebSafe(JSON.stringify(header));
+  var claimSetEncoded = Utilities.base64EncodeWebSafe(JSON.stringify(claimSet));
+  var signatureInput = headerEncoded + "." + claimSetEncoded;
+
+  var signature = Utilities.computeRsaSha256Signature(signatureInput, FIREBASE_SERVICE_ACCOUNT.private_key);
+  var signatureEncoded = Utilities.base64EncodeWebSafe(signature);
+
+  var jwt = signatureInput + "." + signatureEncoded;
+
+  var tokenResponse = UrlFetchApp.fetch("https://oauth2.googleapis.com/token", {
+    method: "post",
+    contentType: "application/x-www-form-urlencoded",
+    payload: {
+      grant_type: "urn:ietf:params:oauth:grant_type:jwt-bearer",
+      assertion: jwt
+    },
+    muteHttpExceptions: true
+  });
+
+  if (tokenResponse.getResponseCode() === 200) {
+    var tokenData = JSON.parse(tokenResponse.getContentText());
+    var accessToken = tokenData.access_token;
+    cache.put("fcm_oauth_token", accessToken, 3500);
+    return accessToken;
+  } else {
+    Logger.log("OAuth Token error: " + tokenResponse.getContentText());
+    return null;
   }
 }
 

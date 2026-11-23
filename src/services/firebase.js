@@ -274,6 +274,31 @@ export async function saveStudioTask(task) {
     if (db) {
         try {
             await db.collection('studio_tasks').doc(taskId).set(task, { merge: true });
+
+            // Push FCM notifikasi ke HP editor yang ditugaskan jika ada
+            if (task.editorName || task.editor || task.assignedTo) {
+                const targetEditor = (task.editorName || task.editor || task.assignedTo).trim().toLowerCase();
+                db.collection('user_devices').get().then(snap => {
+                    const tokens = [];
+                    snap.forEach(doc => {
+                        const u = doc.data();
+                        const uName = (u.nama || u.username || '').trim().toLowerCase();
+                        if (u && u.fcmToken && (uName === targetEditor || targetEditor.includes(uName) || uName.includes(targetEditor))) {
+                            tokens.push(u.fcmToken);
+                        }
+                    });
+                    if (tokens.length > 0 && typeof window.dispatchPushViaGas === 'function') {
+                        const dline = task.deadline ? ` (Deadline: ${task.deadline})` : '';
+                        window.dispatchPushViaGas({
+                            title: '🎯 Tugas Video Baru untuk Anda',
+                            body: `${task.judul || 'Materi Video'}${dline}`,
+                            url: '/studio-editor',
+                            tokens: tokens
+                        });
+                    }
+                }).catch(() => {});
+            }
+
             return true;
         } catch (err) {
             console.error("Firestore saveStudioTask error:", err);

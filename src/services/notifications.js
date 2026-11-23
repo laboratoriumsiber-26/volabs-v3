@@ -260,10 +260,60 @@ export async function sendBroadcastAnnouncement({ judul, pesan, tipe = 'info', t
 
     try {
         await db.collection('broadcasts').doc(docId).set(payload);
+
+        // Ambil semua token FCM relawan yang terdaftar di Firestore user_devices
+        try {
+            const devSnap = await db.collection('user_devices').get();
+            const fcmTokens = [];
+            devSnap.forEach(doc => {
+                const d = doc.data();
+                if (d && d.fcmToken && String(d.fcmToken).length > 20) {
+                    fcmTokens.push(String(d.fcmToken).trim());
+                }
+            });
+
+            // Tembak FCM via Google Apps Script (GAS) agar HP tertutup langsung berdering
+            if (fcmTokens.length > 0) {
+                dispatchPushViaGas({
+                    title: `📢 ${judul.trim()}`,
+                    body: pesan.trim(),
+                    url: '/',
+                    tokens: fcmTokens
+                });
+            }
+        } catch (fcmErr) {
+            console.warn("Notice collecting FCM tokens:", fcmErr);
+        }
+
         return true;
     } catch (err) {
         console.error("Gagal mengirim broadcast:", err);
         throw err;
+    }
+}
+
+// Helper untuk memanggil Google Apps Script FCM Dispatcher di latar belakang
+export function dispatchPushViaGas({ title, body, url = '/', tokens = [] }) {
+    try {
+        const gasUrl = (import.meta.env && import.meta.env.VITE_APPS_SCRIPT_URL) || "https://script.google.com/macros/s/AKfycbwEP8ftUNJExArekzRHOlJiI5wYnfzi7ObQ6DEhFdXRS5pnR-GSTZ0nMnUPQMM9Olel/exec";
+        if (!gasUrl || !tokens || tokens.length === 0) return;
+
+        fetch(gasUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+                action: "send_fcm_push",
+                title: title,
+                body: body,
+                url: url,
+                tokens: tokens
+            })
+        }).then(() => {
+            console.log("FCM Push dispatched to GAS for", tokens.length, "devices.");
+        }).catch(e => console.warn("GAS FCM Push dispatch notice:", e));
+    } catch (e) {
+        console.warn("dispatchPushViaGas error:", e);
     }
 }
 
@@ -525,6 +575,7 @@ export function initNotifications() {
     window.openBroadcastModal = openBroadcastModal;
     window.closeBroadcastModal = closeBroadcastModal;
     window.handleSubmitBroadcast = handleSubmitBroadcast;
+    window.dispatchPushViaGas = dispatchPushViaGas;
 
     // Start background listeners
     listenToBroadcastAnnouncements();
