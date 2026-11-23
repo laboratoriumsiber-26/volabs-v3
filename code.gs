@@ -149,6 +149,9 @@ function sendFcmPushNotification(payload) {
     }
   }
 
+  var origin = "https://volabs-pipd.vercel.app";
+  var iconUrl = origin + "/icon-192.png";
+
   for (var j = 0; j < uniqueTokens.length; j++) {
     var targetToken = uniqueTokens[j];
     var messagePayload = {
@@ -170,8 +173,8 @@ function sendFcmPushNotification(payload) {
           notification: {
             title: title,
             body: body,
-            icon: "/icon-192.png",
-            badge: "/icon-192.png",
+            icon: iconUrl,
+            badge: iconUrl,
             vibrate: [200, 100, 200, 100, 200],
             requireInteraction: true,
             tag: "volabs-push-" + new Date().getTime(),

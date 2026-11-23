@@ -1,5 +1,5 @@
 // VoLabs PIPD - Service Worker (WebAPK & PWA Standalone Support for All Android Devices)
-const CACHE_NAME = 'volabs-pipd-cache-v19';
+const CACHE_NAME = 'volabs-pipd-cache-v21';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -81,21 +81,32 @@ self.addEventListener('fetch', (e) => {
 
 // Push Notification Event Listener (Web Push / Background FCM)
 self.addEventListener('push', (event) => {
-    let data = { title: 'VoLabs PIPD', body: 'Ada pembaruan tugas atau pengumuman baru.', url: '/' };
+    let data = { title: 'VoLabs PIPD', body: 'Pemberitahuan tugas atau informasi operasional terbaru.', url: '/' };
     if (event.data) {
         try {
             data = event.data.json();
+            // Handle FCM payload format
+            if (data.notification) {
+                data.title = data.notification.title || data.title;
+                data.body = data.notification.body || data.body;
+            }
+            if (data.data) {
+                data.title = data.data.title || data.title;
+                data.body = data.data.body || data.body;
+                data.url = data.data.url || data.url;
+            }
         } catch (e) {
             data.body = event.data.text();
         }
     }
 
     const title = data.title || 'VoLabs PIPD';
-    const origin = self.location.origin || '';
+    const origin = self.location.origin || 'https://volabs-pipd.vercel.app';
+    const iconUrl = origin + '/icon-192.png';
     const options = {
         body: data.body,
-        icon: origin + '/icon-192.png',
-        badge: origin + '/icon-192.png',
+        icon: iconUrl,
+        badge: iconUrl,
         vibrate: [200, 100, 200, 100, 200],
         requireInteraction: true,
         tag: 'volabs-fcm-' + Date.now(),

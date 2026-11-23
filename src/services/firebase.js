@@ -277,21 +277,36 @@ export async function saveStudioTask(task) {
 
             // Push FCM notifikasi ke HP editor yang ditugaskan jika ada
             if (task.editorName || task.editor || task.assignedTo) {
-                const targetEditor = (task.editorName || task.editor || task.assignedTo).trim().toLowerCase();
+                const targetEditor = (task.editorName || task.editor || task.assignedTo).trim();
+                const targetEditorLower = targetEditor.toLowerCase();
                 db.collection('user_devices').get().then(snap => {
                     const tokens = [];
                     snap.forEach(doc => {
                         const u = doc.data();
                         const uName = (u.nama || u.username || '').trim().toLowerCase();
-                        if (u && u.fcmToken && (uName === targetEditor || targetEditor.includes(uName) || uName.includes(targetEditor))) {
+                        if (u && u.fcmToken && (uName === targetEditorLower || targetEditorLower.includes(uName) || uName.includes(targetEditorLower))) {
                             tokens.push(u.fcmToken);
                         }
                     });
                     if (tokens.length > 0 && typeof window.dispatchPushViaGas === 'function') {
-                        const dline = task.deadline ? ` (Deadline: ${task.deadline})` : '';
+                        const dline = task.deadline ? ` (Tenggat: ${task.deadline})` : '';
+                        let pushTitle = `Penugasan Video: ${targetEditor}`;
+                        let pushBody = `Tugas baru "${task.judul || 'Materi Video'}" telah ditugaskan kepada Anda${dline}.`;
+                        
+                        if (task.status === 'Perlu Revisi' || task.status === 'Revisi') {
+                            pushTitle = `Revisi Video: ${targetEditor}`;
+                            pushBody = `Materi "${task.judul || 'Video'}" memerlukan revisi: ${task.revisi || 'Silakan periksa catatan revisi di aplikasi.'}`;
+                        } else if (task.status === 'Menunggu Review Admin') {
+                            pushTitle = `Hasil Video: ${targetEditor}`;
+                            pushBody = `${targetEditor} telah mengunggah hasil edit untuk "${task.judul || 'Video'}".`;
+                        } else if (task.status === 'Selesai' || task.status === 'Disetujui') {
+                            pushTitle = `Video Disetujui: ${targetEditor}`;
+                            pushBody = `Materi "${task.judul || 'Video'}" yang Anda kerjakan telah disetujui.`;
+                        }
+
                         window.dispatchPushViaGas({
-                            title: '🎯 Tugas Video Baru untuk Anda',
-                            body: `${task.judul || 'Materi Video'}${dline}`,
+                            title: pushTitle,
+                            body: pushBody,
                             url: '/studio-editor',
                             tokens: tokens
                         });

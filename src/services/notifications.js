@@ -284,7 +284,7 @@ export async function sendBroadcastAnnouncement({ judul, pesan, tipe = 'info', t
             // Tembak FCM via Google Apps Script (GAS) agar HP tertutup langsung berdering
             if (fcmTokens.length > 0) {
                 dispatchPushViaGas({
-                    title: `📢 ${judul.trim()}`,
+                    title: `Pengumuman: ${judul.trim()}`,
                     body: pesan.trim(),
                     url: '/',
                     tokens: fcmTokens
@@ -349,12 +349,12 @@ export function listenToBroadcastAnnouncements() {
                         // Only notify actively if reasonably recent
                         if (data.timestamp && data.timestamp > sessionStart) {
                             showInAppToast(
-                                `📢 Pengumuman: ${data.judul || 'Info Penting'}`,
+                                `Pengumuman: ${data.judul || 'Informasi Penting'}`,
                                 `${data.pesan || ''}`,
                                 data.tipe === 'penting' ? 'warning' : 'info',
                                 () => showBroadcastModalDetail(data)
                             );
-                            showBrowserNotification(`📢 ${data.judul || 'Pengumuman Baru VoLABS'}`, {
+                            showBrowserNotification(`Pengumuman: ${data.judul || 'VoLabs PIPD'}`, {
                                 body: data.pesan || 'Buka aplikasi untuk melihat informasi lengkap.',
                                 data: { url: '/' }
                             });
@@ -369,7 +369,7 @@ export function showBroadcastModalDetail(data) {
     if (!window.showCustomDialog) return;
     const tgl = data.createdAt ? new Date(data.createdAt).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : 'Hari ini';
     window.showCustomDialog({
-        title: `📢 ${data.judul || 'Pengumuman'}`,
+        title: `Pengumuman: ${data.judul || 'Informasi'}`,
         message: `
             <div style="font-size: 13.5px; line-height: 1.6; color: var(--text-primary);">
                 <div style="margin-bottom: 8px; font-size: 11.5px; color: var(--text-muted);">
@@ -414,8 +414,8 @@ export function listenToStudioTaskAssignments() {
 
                 // If added task is assigned to current logged-in editor/volunteer
                 if (isForMe || currentRole === 'Super Admin' || currentRole === 'Admin') {
-                    const prefix = isForMe ? '🎯 Tugas Baru untuk Anda' : `🎬 Tugas Editor Baru: ${task.editorName || 'Belum ada PIC'}`;
-                    const deadlineStr = task.deadline ? ` (Deadline: ${task.deadline})` : '';
+                    const prefix = isForMe ? 'Penugasan Video Baru' : `Penugasan Editor: ${task.editorName || 'Belum ada PIC'}`;
+                    const deadlineStr = task.deadline ? ` (Tenggat: ${task.deadline})` : '';
 
                     showInAppToast(
                         prefix,
@@ -435,13 +435,17 @@ export function listenToStudioTaskAssignments() {
                 // If status changed or updated
                 if (task.status === 'Revisi' || task.status === 'Review') {
                     showInAppToast(
-                        `🔄 Status Tugas Berubah: ${task.status}`,
-                        `Tugas "${task.judul || 'Video'}" telah diupdate menjadi ${task.status}.`,
+                        `Pembaruan Status Tugas: ${task.status}`,
+                        `Materi video "${task.judul || 'Video'}" telah diperbarui statusnya menjadi ${task.status}.`,
                         'warning',
                         () => {
                             if (window.switchView) window.switchView('studio-editor');
                         }
                     );
+                    showBrowserNotification(`Pembaruan Status: ${task.status}`, {
+                        body: `Tugas "${task.judul || 'Video'}" memerlukan perhatian Anda.`,
+                        data: { url: '/studio-editor' }
+                    });
                 }
             }
         });
