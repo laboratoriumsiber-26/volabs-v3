@@ -176,6 +176,11 @@ function sendFcmPushNotification(payload) {
     var messagePayload = {
       message: {
         token: targetToken,
+        // ROOT NOTIFICATION: Memaksa Google Play Services / System UI langsung menampilkan notifikasi di layar HP walaupun app tertutup atau mode hemat daya aktif
+        notification: {
+          title: title,
+          body: body
+        },
         data: {
           title: title,
           body: body,
